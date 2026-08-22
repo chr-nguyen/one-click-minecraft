@@ -7,6 +7,7 @@ import { pickFunItem } from './objects.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { HeldTool } from './heldtool.js';
 import { Background } from './background.js';
+import { t } from './i18n.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -124,7 +125,7 @@ export class Game {
     const items = MATERIAL_DEFS.filter((m) => ids.has(m.id)).map((m) => ({
       name: m.name, have: this.totals[m.id] || 0, need: recipe[m.id],
     }));
-    this.ui.setProgress(nt ? nt.name : null, items);
+    this.ui.setProgress(nt ? t('next', { tool: nt.name }) : t('maxShovel'), items);
   }
 
   _dig() {
@@ -203,9 +204,9 @@ export class Game {
     this._updateProgress();
 
     // Flourish priority: upgrade > fun item > material collected.
-    if (upgraded) this.ui.flourish(`NEW! ${best.name}`, '#ffd54a');
-    else if (funItem) this.ui.flourish(`${funItem.name}  +${funItem.score}`, funItem.color);
-    else this.ui.flourish(`+${yield_} ${md.name}`, matHex);
+    if (upgraded) this.ui.flourish(t('newTool', { tool: best.name }), '#ffd54a');
+    else if (funItem) this.ui.flourish(t('gotItem', { item: funItem.name, score: funItem.score }), funItem.color);
+    else this.ui.flourish(t('gotMat', { n: yield_, mat: md.name }), matHex);
 
     setTimeout(() => this._nextCube(), 550);
   }

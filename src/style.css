@@ -14,6 +14,10 @@
   font-family: var(--sans);
 }
 
+/* Press Start 2P only covers Latin-1; non-Latin scripts fall back to a readable
+   system stack (per-script pixel fonts are a later refinement). */
+html:not([data-script="latin"]) { --pixel: var(--sans); }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); }
@@ -115,11 +119,21 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 #overlay-inner button {
   font-family: var(--pixel); letter-spacing: 0.04em; font-size: 14px;
   color: #0e1220; background: var(--accent); border: none; border-radius: 12px;
-  padding: 16px 32px; cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s ease;
+  padding: 16px 32px; cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.35s ease;
   box-shadow: 0 6px 24px rgba(255,176,32,0.35);
 }
 #overlay-inner button:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,176,32,0.5); }
 #overlay-inner button:active { transform: translateY(0); }
+/* Delayed reveal: button is invisible & untappable until its timer clears, so
+   tap-momentum from digging can't accidentally restart. */
+#overlay-inner button.pending { opacity: 0; pointer-events: none; transform: translateY(8px); }
+
+#overlay-inner #langSel {
+  display: block; margin: 18px auto 0; font-family: var(--sans); font-size: 14px;
+  color: var(--ink); background: rgba(20,26,42,0.8); border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px; padding: 8px 12px; cursor: pointer; max-width: 220px;
+}
 #overlay-inner .credit {
   font-family: var(--pixel); font-size: 8px; letter-spacing: 0.04em;
   color: var(--dim); margin-top: 28px; margin-bottom: 0; opacity: 0.8;

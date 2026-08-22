@@ -60,7 +60,7 @@ export function setLocale(code) {
   const root = document.documentElement;
   root.lang = code;
   root.dir = meta.rtl ? 'rtl' : 'ltr';
-  root.setAttribute('data-pixel', meta.pixel ? '1' : '0');
+  root.setAttribute('data-script', meta.script); // CSS picks the font per script
 }
 
 // Translate `key` with optional ICU `values`. Falls back to English, then key.
