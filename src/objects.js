@@ -15,14 +15,7 @@ export const RARITY = {
   legendary: { name: 'Legendary', color: 0xffb020, glow: 1.0,  weight: 3,  score: 20 },
 };
 
-// Tools available to the auto-best-tool system. Higher power = fewer hits.
-// Extracting a stronger tool from a cube upgrades the run.
-export const TOOLS = {
-  hand:    { id: 'hand',    name: 'Hand',    power: 1.0, breaks: [] },
-  shovel:  { id: 'shovel',  name: 'Shovel',  power: 2.0, breaks: ['shovel'] },
-  pickaxe: { id: 'pickaxe', name: 'Pickaxe', power: 2.0, breaks: ['pickaxe'] },
-  drill:   { id: 'drill',   name: 'Drill',   power: 3.0, breaks: ['pickaxe', 'shovel', 'drill'] },
-};
+// Tools live in tools.js; loot grants one by `tool` id below.
 
 // Voxel blueprints on a 5x5x5 normalized grid. `cells` are [x,y,z] offsets
 // (0..4). Kept small & readable; the generator centers them in the cube.

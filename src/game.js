@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { Cube } from './cube.js';
 import { Particles, Shake } from './juice.js';
 import { particleColor, getMaterial } from './materials.js';
-import { TOOLS } from './objects.js';
-import { initAudio, resumeAudio, sfx } from './audio.js';
+import { TOOLS, toolPower } from './tools.js';
+import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -91,14 +91,10 @@ export class Game {
     this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
   }
 
-  // Auto-best-tool: pick the strongest owned tool that suits the material,
-  // else fall back to raw power. Durability still sets the pace.
+  // Auto-best-tool: the current tool's effective power against this material's
+  // family. Right tool = full power; wrong tool = reduced. Durability sets pace.
   _powerFor(matId) {
-    const affinity = getMaterial(matId).affinity;
-    // If current tool matches affinity or is a universal drill, full power; else 60%.
-    const t = this.tool;
-    const suits = t.breaks.includes(affinity) || t.id === 'drill';
-    return suits ? t.power : Math.max(1, t.power * 0.6);
+    return toolPower(this.tool, getMaterial(matId).family);
   }
 
   _dig() {
@@ -124,17 +120,17 @@ export class Game {
         sfx.tick(4);
         break;
       case 'damage': {
-        const col = particleColor(evt.matId);
-        this.particles.burst(wp.x, wp.y, wp.z, col, 5, 2.5);
+        const def = getMaterial(evt.matId);
+        this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), 5, 2.5);
         this.shake.add(0.06 + evt.hardness * 0.01, 0.12);
-        sfx.tick(evt.hardness);
+        digSound(def);
         break;
       }
       case 'break': {
-        const col = particleColor(evt.matId);
-        this.particles.burst(wp.x, wp.y, wp.z, col, 12 + evt.hardness * 2, 4 + evt.hardness);
+        const def = getMaterial(evt.matId);
+        this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), def.dyn.chips, def.dyn.chipSpeed);
         this.shake.add(0.14 + evt.hardness * 0.02, 0.22);
-        sfx.shatter(evt.hardness);
+        breakSound(def);
         if (evt.extracted) this._extract(evt.extracted);
         break;
       }

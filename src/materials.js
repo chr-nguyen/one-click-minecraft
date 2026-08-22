@@ -12,25 +12,31 @@ import * as THREE from 'three';
  * @typedef {Object} MaterialDef
  * @property {string}  id         Unique key.
  * @property {string}  name       Display name.
- * @property {number}  durability Hits to break one voxel (before tool bonus).
+ * @property {number}  durability Hits to break one voxel (in tool-power units).
+ * @property {string}  family     Tool-matching + sound family: soft|rock|crystal|metal.
  * @property {[number,number,number]} hsl  Base color as [hue 0-1, sat 0-1, light 0-1].
  * @property {number}  colorJitter  Per-voxel HSL lightness/hue spread (0-1).
  * @property {number}  grain        Procedural speckle strength (0-1).
  * @property {number}  roughness
  * @property {number}  metalness
  * @property {number}  emissive     Self-glow strength (0 = none).
- * @property {string}  affinity     Tool id that breaks this fastest.
+ * @property {string}  crackTint    Hex color for crack decals (readable on this material).
  * @property {number}  spawnWeight  Relative frequency in cube generation.
+ * @property {Object}  dyn          Dig dynamics.
+ * @property {number}  dyn.jiggle   Hit-jiggle amplitude (world units).
+ * @property {number}  dyn.chips    Debris particles emitted on break.
+ * @property {number}  dyn.chipSpeed Debris launch speed.
+ * @property {number}  dyn.pitch    Sound pitch multiplier for this material.
  */
 
 /** @type {MaterialDef[]} */
 export const MATERIAL_DEFS = [
-  { id: 'dirt',     name: 'Dirt',     durability: 1, hsl: [0.08, 0.55, 0.34], colorJitter: 0.10, grain: 0.9, roughness: 1.0, metalness: 0.0, emissive: 0,    affinity: 'shovel',  spawnWeight: 5 },
-  { id: 'sand',     name: 'Sand',     durability: 1, hsl: [0.12, 0.55, 0.60], colorJitter: 0.08, grain: 1.0, roughness: 1.0, metalness: 0.0, emissive: 0,    affinity: 'shovel',  spawnWeight: 3 },
-  { id: 'stone',    name: 'Stone',    durability: 3, hsl: [0.62, 0.04, 0.48], colorJitter: 0.09, grain: 0.6, roughness: 0.9, metalness: 0.02, emissive: 0,   affinity: 'pickaxe', spawnWeight: 6 },
-  { id: 'ice',      name: 'Ice',      durability: 2, hsl: [0.55, 0.45, 0.72], colorJitter: 0.06, grain: 0.25, roughness: 0.25, metalness: 0.0, emissive: 0.04, affinity: 'pickaxe', spawnWeight: 2 },
-  { id: 'ore',      name: 'Ore',      durability: 4, hsl: [0.58, 0.10, 0.42], colorJitter: 0.12, grain: 0.7, roughness: 0.7, metalness: 0.35, emissive: 0.02, affinity: 'pickaxe', spawnWeight: 3 },
-  { id: 'obsidian', name: 'Obsidian', durability: 6, hsl: [0.75, 0.30, 0.14], colorJitter: 0.05, grain: 0.4, roughness: 0.35, metalness: 0.15, emissive: 0.02, affinity: 'drill',  spawnWeight: 1 },
+  { id: 'dirt',     name: 'Dirt',     durability: 1, family: 'soft',    hsl: [0.08, 0.55, 0.34], colorJitter: 0.10, grain: 0.9,  roughness: 1.0,  metalness: 0.0,  emissive: 0,    crackTint: '#241809', spawnWeight: 5, dyn: { jiggle: 0.13, chips: 10, chipSpeed: 4,   pitch: 1.0 } },
+  { id: 'sand',     name: 'Sand',     durability: 1, family: 'soft',    hsl: [0.12, 0.55, 0.60], colorJitter: 0.08, grain: 1.0,  roughness: 1.0,  metalness: 0.0,  emissive: 0,    crackTint: '#3a2f14', spawnWeight: 3, dyn: { jiggle: 0.18, chips: 14, chipSpeed: 5,   pitch: 1.15 } },
+  { id: 'stone',    name: 'Stone',    durability: 3, family: 'rock',    hsl: [0.62, 0.04, 0.48], colorJitter: 0.09, grain: 0.6,  roughness: 0.9,  metalness: 0.02, emissive: 0,    crackTint: '#181c22', spawnWeight: 6, dyn: { jiggle: 0.14, chips: 12, chipSpeed: 5,   pitch: 1.0 } },
+  { id: 'ice',      name: 'Ice',      durability: 2, family: 'crystal', hsl: [0.55, 0.45, 0.72], colorJitter: 0.06, grain: 0.25, roughness: 0.25, metalness: 0.0,  emissive: 0.04, crackTint: '#dff2ff', spawnWeight: 2, dyn: { jiggle: 0.10, chips: 16, chipSpeed: 6.5, pitch: 1.5 } },
+  { id: 'ore',      name: 'Ore',      durability: 4, family: 'metal',   hsl: [0.58, 0.10, 0.42], colorJitter: 0.12, grain: 0.7,  roughness: 0.7,  metalness: 0.35, emissive: 0.02, crackTint: '#12161e', spawnWeight: 3, dyn: { jiggle: 0.12, chips: 12, chipSpeed: 5,   pitch: 0.9 } },
+  { id: 'obsidian', name: 'Obsidian', durability: 6, family: 'crystal', hsl: [0.75, 0.30, 0.14], colorJitter: 0.05, grain: 0.4,  roughness: 0.35, metalness: 0.15, emissive: 0.02, crackTint: '#d8c8ff', spawnWeight: 1, dyn: { jiggle: 0.08, chips: 10, chipSpeed: 5,   pitch: 0.7 } },
 ];
 
 const byId = new Map(MATERIAL_DEFS.map((m) => [m.id, m]));
@@ -68,7 +74,7 @@ function proceduralTexture(def) {
   for (let y = 0; y < TEX_SIZE; y++) {
     for (let x = 0; x < TEX_SIZE; x++) {
       const n = (hash2(x, y) * 0.6 + hash2(x >> 1, y >> 1) * 0.4 - 0.5);
-      const v = Math.max(0, Math.min(1, 1 - Math.abs(n) * def.grain * 0.6)) * 255;
+      const v = Math.max(0, Math.min(1, 1 - Math.abs(n) * def.grain * 0.35)) * 255;
       const i = (y * TEX_SIZE + x) * 4;
       img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
     }
@@ -100,19 +106,17 @@ export function threeMaterial(id) {
   return m;
 }
 
-// Per-voxel color jitter — returns a THREE.Color offset from the base palette.
-export function jitterColor(id, seed) {
+// Voxel color — a single flat color per material with only a SMOOTH,
+// low-frequency shade gradient across the cube. Adjacent voxels differ only
+// slightly, so the intact surface reads as one solid block, not a grid of
+// distinctly-colored cubes.
+export function shadeColor(id, i, j, k) {
   const def = getMaterial(id);
-  const j = def.colorJitter;
-  const rnd = (hash2(seed & 0xffff, seed >> 16) - 0.5) * 2;
-  const rnd2 = (hash2(seed >> 8, seed) - 0.5) * 2;
   const [h, s, l] = def.hsl;
-  const [r, g, b] = hslToRgb(
-    (h + rnd2 * j * 0.15 + 1) % 1,
-    Math.max(0, s + rnd * j * 0.2),
-    Math.max(0.03, Math.min(0.97, l + rnd * j)),
-  );
-  return new THREE.Color(r / 255, g / 255, b / 255);
+  const n = Math.sin(i * 0.9 + 1.3) * Math.cos(j * 0.8 + 0.7) * Math.sin(k * 0.7 + 2.1);
+  const shade = 1 + n * 0.06; // ~0.94..1.06, gentle
+  const [r, g, b] = hslToRgb(h, s, Math.max(0.03, Math.min(0.97, l)));
+  return new THREE.Color(r / 255, g / 255, b / 255).multiplyScalar(shade);
 }
 
 export const particleColor = (id) => {

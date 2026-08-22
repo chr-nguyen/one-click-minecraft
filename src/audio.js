@@ -56,6 +56,31 @@ function tone({ freq = 440, dur = 0.12, type = 'sine', gain = 0.3, slideTo = nul
   osc.stop(ctx.currentTime + dur);
 }
 
+// ── Per-material sound families ──────────────────────────────────────────────
+// A material names a family; adding a family here gives every material that
+// references it a distinct dig/break voice. `pitch` (from material.dyn) shifts it.
+const SOUND_FAMILIES = {
+  soft:    { tickF: 550,  tickQ: 1, breakF: 300,  breakQ: 0.6, thud: 150, ring: false },
+  rock:    { tickF: 1100, tickQ: 2, breakF: 620,  breakQ: 0.7, thud: 150, ring: false },
+  crystal: { tickF: 2200, tickQ: 7, breakF: 1500, breakQ: 5,   thud: 380, ring: true },
+  metal:   { tickF: 1700, tickQ: 8, breakF: 900,  breakQ: 4,   thud: 220, ring: true },
+};
+
+export function digSound(matDef) {
+  const f = SOUND_FAMILIES[matDef.family] || SOUND_FAMILIES.rock;
+  const p = matDef.dyn.pitch;
+  burst({ dur: 0.05, freq: f.tickF * p, q: f.tickQ, gain: 0.22 });
+  if (f.ring) tone({ freq: f.tickF * p * 1.5, dur: 0.05, type: 'sine', gain: 0.06 });
+}
+
+export function breakSound(matDef) {
+  const f = SOUND_FAMILIES[matDef.family] || SOUND_FAMILIES.rock;
+  const p = matDef.dyn.pitch;
+  burst({ dur: 0.13, freq: f.breakF * p, q: f.breakQ, gain: 0.5 });
+  tone({ freq: f.thud * p, dur: 0.11, type: 'triangle', gain: 0.18 });
+  if (f.ring) tone({ freq: f.breakF * p * 2, dur: 0.25, type: 'sine', gain: 0.12, slideTo: f.breakF * p });
+}
+
 // ── SFX vocabulary ───────────────────────────────────────────────────────────
 export const sfx = {
   // light tick when a voxel is damaged but not broken; freq varies with hardness
