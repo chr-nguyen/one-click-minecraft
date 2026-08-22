@@ -18,6 +18,12 @@ export const MESSAGES = {
     reached: 'Reached: {tool}', again: 'GO AGAIN',
     next: 'NEXT · {tool}', maxShovel: 'MAX SHOVEL',
     gotMat: '+{n} {mat}', newTool: 'NEW! {tool}', gotItem: '{item}  +{score}',
+    mat_dirt: 'Dirt', mat_mud: 'Mud', mat_clay: 'Clay', mat_stone: 'Stone', mat_granite: 'Granite',
+    mat_iron: 'Iron', mat_coal: 'Coal', mat_copper: 'Copper', mat_tin: 'Tin', mat_gold: 'Gold',
+    tool_hand: 'Hand', tool_clay_shovel: 'Clay Shovel', tool_stone_shovel: 'Stone Shovel',
+    tool_iron_shovel: 'Iron Shovel', tool_steel_shovel: 'Steel Shovel', tool_copper_shovel: 'Copper Shovel',
+    tool_bronze_shovel: 'Bronze Shovel', tool_gold_shovel: 'Gold Alloy Shovel',
+    item_boot: 'Old Boot', item_ham: 'Ham Sandwich', item_shirt: 'Band T-Shirt', item_trex: 'T-Rex Skull', item_gold: 'Gold Loot',
   },
   es: {
     start: 'A CAVAR',
@@ -76,11 +82,11 @@ export const MESSAGES = {
   },
   ary: {
     start: 'BDA TE7FAR',
-    htp1: 'Kteb 3la l-blocات bach t7ferhom w tjme3 l-mawad.',
+    htp1: 'Kteb 3la l-blocat bach t7ferhom w tjme3 l-mawad.',
     htp2: 'L-pelle dyalek kattzad wa7edha mnin kate7fer — otomatik.',
-    challenge: '{sec} tania. Ch7al d blocات te2der te7fer?',
-    time: 'L-WA9T', score: 'NO9AT', best: 'A7SEN',
-    timeUp: 'SALA L-WA9T!', newBest: 'RQM JDID!', bestLine: 'A7sen: {n}',
+    challenge: '{sec} tania. Ch7al d blocat te2der te7fer?',
+    time: 'L-WA9T', score: 'NO9AT', best: 'A7SAN',
+    timeUp: 'SALA L-WA9T!', newBest: 'RQM JDID!', bestLine: 'A7san: {n}',
     reached: 'Wselti l: {tool}', again: '3AWED',
     next: 'JAY · {tool}', maxShovel: 'PELLE MAX',
     gotMat: '+{n} {mat}', newTool: 'JDID! {tool}', gotItem: '{item}  +{score}',
@@ -174,3 +180,62 @@ export const MESSAGES = {
     gotMat: '+{n} {mat}', newTool: 'חדש! {tool}', gotItem: '{item}  +{score}',
   },
 };
+
+// Material / tool / item names per locale, merged into MESSAGES. English (in the
+// blocks above) is the fallback. Best-effort — native review recommended.
+const N = (mats, tools, items) => ({
+  mat_dirt: mats[0], mat_mud: mats[1], mat_clay: mats[2], mat_stone: mats[3], mat_granite: mats[4],
+  mat_iron: mats[5], mat_coal: mats[6], mat_copper: mats[7], mat_tin: mats[8], mat_gold: mats[9],
+  tool_hand: tools[0], tool_clay_shovel: tools[1], tool_stone_shovel: tools[2], tool_iron_shovel: tools[3],
+  tool_steel_shovel: tools[4], tool_copper_shovel: tools[5], tool_bronze_shovel: tools[6], tool_gold_shovel: tools[7],
+  item_boot: items[0], item_ham: items[1], item_shirt: items[2], item_trex: items[3], item_gold: items[4],
+});
+
+const NAMES = {
+  es: N(['Tierra','Barro','Arcilla','Piedra','Granito','Hierro','Carbón','Cobre','Estaño','Oro'],
+        ['Mano','Pala de arcilla','Pala de piedra','Pala de hierro','Pala de acero','Pala de cobre','Pala de bronce','Pala de oro'],
+        ['Bota vieja','Sándwich de jamón','Camiseta de banda','Cráneo de T-Rex','Botín de oro']),
+  fr: N(['Terre','Boue','Argile','Pierre','Granite','Fer','Charbon','Cuivre','Étain','Or'],
+        ['Main','Pelle en argile','Pelle en pierre','Pelle en fer','Pelle en acier','Pelle en cuivre','Pelle en bronze','Pelle en or'],
+        ['Vieille botte','Sandwich au jambon','T-shirt de groupe','Crâne de T-Rex','Butin d’or']),
+  'pt-BR': N(['Terra','Lama','Argila','Pedra','Granito','Ferro','Carvão','Cobre','Estanho','Ouro'],
+        ['Mão','Pá de argila','Pá de pedra','Pá de ferro','Pá de aço','Pá de cobre','Pá de bronze','Pá de ouro'],
+        ['Bota velha','Sanduíche de presunto','Camiseta de banda','Crânio de T-Rex','Tesouro de ouro']),
+  'pt-PT': N(['Terra','Lama','Argila','Pedra','Granito','Ferro','Carvão','Cobre','Estanho','Ouro'],
+        ['Mão','Pá de argila','Pá de pedra','Pá de ferro','Pá de aço','Pá de cobre','Pá de bronze','Pá de ouro'],
+        ['Bota velha','Sanduíche de fiambre','T-shirt de banda','Crânio de T-Rex','Tesouro de ouro']),
+  gl: N(['Terra','Barro','Arxila','Pedra','Granito','Ferro','Carbón','Cobre','Estaño','Ouro'],
+        ['Man','Pa de arxila','Pa de pedra','Pa de ferro','Pa de aceiro','Pa de cobre','Pa de bronce','Pa de ouro'],
+        ['Bota vella','Bocadillo de xamón','Camiseta de banda','Cranio de T-Rex','Botín de ouro']),
+  ary: N(['Trab','Ghis','Slsal','7ajra','Granit','7did','Fe7m','N7as','Qasdir','Dheb'],
+        ['Yedd','Pelle d slsal','Pelle d 7ajra','Pelle d 7did','Pelle d acier','Pelle d n7as','Pelle d bronze','Pelle d dheb'],
+        ['Sebbat qdim','Sandwich jambon','Tricot d groupe','Jomjoma d T-Rex','Kanz dhehbi']),
+  cs: N(['Hlína','Bláto','Jíl','Kámen','Žula','Železo','Uhlí','Měď','Cín','Zlato'],
+        ['Ruka','Jílová lopata','Kamenná lopata','Železná lopata','Ocelová lopata','Měděná lopata','Bronzová lopata','Zlatá lopata'],
+        ['Stará bota','Šunkový sendvič','Tričko kapely','Lebka T-Rexe','Zlatý poklad']),
+  sk: N(['Hlina','Blato','Íl','Kameň','Žula','Železo','Uhlie','Meď','Cín','Zlato'],
+        ['Ruka','Ílová lopata','Kamenná lopata','Železná lopata','Oceľová lopata','Medená lopata','Bronzová lopata','Zlatá lopata'],
+        ['Stará topánka','Šunkový sendvič','Tričko kapely','Lebka T-Rexa','Zlatý poklad']),
+  vi: N(['Đất','Bùn','Đất sét','Đá','Granit','Sắt','Than','Đồng','Thiếc','Vàng'],
+        ['Tay','Xẻng đất sét','Xẻng đá','Xẻng sắt','Xẻng thép','Xẻng đồng','Xẻng đồng thau','Xẻng vàng'],
+        ['Giày cũ','Bánh mì giăm bông','Áo thun ban nhạc','Sọ T-Rex','Kho báu vàng']),
+  ru: N(['Земля','Грязь','Глина','Камень','Гранит','Железо','Уголь','Медь','Олово','Золото'],
+        ['Рука','Глиняная лопата','Каменная лопата','Железная лопата','Стальная лопата','Медная лопата','Бронзовая лопата','Золотая лопата'],
+        ['Старый ботинок','Сэндвич с ветчиной','Футболка группы','Череп ти-рекса','Золотой клад']),
+  uk: N(['Земля','Багно','Глина','Камінь','Граніт','Залізо','Вугілля','Мідь','Олово','Золото'],
+        ['Рука','Глиняна лопата','Кам’яна лопата','Залізна лопата','Сталева лопата','Мідна лопата','Бронзова лопата','Золота лопата'],
+        ['Старий черевик','Сендвіч із шинкою','Футболка гурту','Череп ті-рекса','Золотий скарб']),
+  bg: N(['Пръст','Кал','Глина','Камък','Гранит','Желязо','Въглища','Мед','Калай','Злато'],
+        ['Ръка','Глинена лопата','Каменна лопата','Желязна лопата','Стоманена лопата','Медна лопата','Бронзова лопата','Златна лопата'],
+        ['Стара обувка','Сандвич с шунка','Тениска на банда','Череп на ти-рекс','Златно съкровище']),
+  ja: N(['土','泥','粘土','石','花崗岩','鉄','石炭','銅','スズ','金'],
+        ['手','粘土のシャベル','石のシャベル','鉄のシャベル','鋼のシャベル','銅のシャベル','青銅のシャベル','金のシャベル'],
+        ['古い靴','ハムサンド','バンドTシャツ','ティラノの頭骨','金のお宝']),
+  he: N(['אדמה','בוץ','חרס','אבן','גרניט','ברזל','פחם','נחושת','בדיל','זהב'],
+        ['יד','את חרס','את אבן','את ברזל','את פלדה','את נחושת','את ארד','את זהב'],
+        ['מגף ישן','כריך נקניק','חולצת להקה','גולגולת טי-רקס','מטמון זהב']),
+};
+
+for (const [loc, names] of Object.entries(NAMES)) {
+  MESSAGES[loc] = { ...(MESSAGES[loc] || {}), ...names };
+}

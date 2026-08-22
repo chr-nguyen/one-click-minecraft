@@ -117,15 +117,12 @@ export class Game {
   _updateProgress() {
     const nt = nextTool(this.tool.tier);
     const recipe = nt ? nt.recipe : {};
-    const ids = new Set([
-      ...Object.keys(this.totals).filter((k) => this.totals[k] > 0),
-      ...Object.keys(recipe),
-    ]);
-    // ordered by material tier, showing everything collected + the next needs
-    const items = MATERIAL_DEFS.filter((m) => ids.has(m.id)).map((m) => ({
-      name: m.name, have: this.totals[m.id] || 0, need: recipe[m.id],
+    // Show ALL material types (tier order) so every type is visibly tracked.
+    const items = MATERIAL_DEFS.map((m) => ({
+      name: t('mat_' + m.id), have: this.totals[m.id] || 0, need: recipe[m.id],
     }));
-    this.ui.setProgress(nt ? t('next', { tool: nt.name }) : t('maxShovel'), items);
+    const label = nt ? t('next', { tool: t('tool_' + nt.id) }) : t('maxShovel');
+    this.ui.setProgress(label, items);
   }
 
   _dig() {
@@ -204,9 +201,9 @@ export class Game {
     this._updateProgress();
 
     // Flourish priority: upgrade > fun item > material collected.
-    if (upgraded) this.ui.flourish(t('newTool', { tool: best.name }), '#ffd54a');
-    else if (funItem) this.ui.flourish(t('gotItem', { item: funItem.name, score: funItem.score }), funItem.color);
-    else this.ui.flourish(t('gotMat', { n: yield_, mat: md.name }), matHex);
+    if (upgraded) this.ui.flourish(t('newTool', { tool: t('tool_' + best.id) }), '#ffd54a');
+    else if (funItem) this.ui.flourish(t('gotItem', { item: t('item_' + funItem.id), score: funItem.score }), funItem.color);
+    else this.ui.flourish(t('gotMat', { n: yield_, mat: t('mat_' + matId) }), matHex);
 
     setTimeout(() => this._nextCube(), 550);
   }
@@ -246,7 +243,7 @@ export class Game {
       localStorage.setItem('justdig.best', String(this.best));
       this.ui.setBest(this.best);
     }
-    this.ui.showGameOver(this.score, this.best, this.tool.name, () => this.start());
+    this.ui.showGameOver(this.score, this.best, t('tool_' + this.tool.id), () => this.start());
   }
 
   _loop() {

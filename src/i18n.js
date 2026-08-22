@@ -37,16 +37,10 @@ let current = DEFAULT;
 const cache = new Map(); // `${locale}:${key}` → IntlMessageFormat
 
 function pickInitial() {
+  // English by default; the player picks another language from the menu. We do
+  // NOT auto-match the browser locale — only honor an explicit prior choice.
   const saved = localStorage.getItem('justdig.lang');
-  if (saved && BY_CODE.has(saved)) return saved;
-  const navs = navigator.languages || [navigator.language || 'en'];
-  for (const n of navs) {
-    if (BY_CODE.has(n)) return n;                       // exact (e.g. pt-BR)
-    const base = n.split('-')[0];
-    const hit = LOCALES.find((l) => l.code === base || l.code.startsWith(base + '-'));
-    if (hit) return hit.code;
-  }
-  return DEFAULT;
+  return saved && BY_CODE.has(saved) ? saved : DEFAULT;
 }
 
 export function getLocale() { return current; }

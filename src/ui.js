@@ -37,7 +37,7 @@ export class UI {
     this.score.classList.add('bump');
   }
   setBest(b) { this.best.textContent = b; }
-  setTool(t2) { this.toolName.textContent = t2.name; }
+  setTool(t2) { this.toolName.textContent = t('tool_' + t2.id); }
 
   // items: [{name, have, need?}] pre-ordered by the caller. `label` is localized.
   setProgress(label, items) {

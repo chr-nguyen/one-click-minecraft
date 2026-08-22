@@ -1,22 +1,28 @@
-@font-face {
-  font-family: 'Press Start 2P';
-  src: url('./fonts/PressStart2P-Regular.ttf') format('truetype');
-  font-display: swap;
-}
+/* Pixel fonts per script (all SIL OFL). Press Start 2P covers only Latin-1, so
+   each script gets a pixel font that actually has its glyphs. */
+/* size-adjust normalizes each pixel font to Press Start 2P's visual size so a
+   given font-size looks the same across scripts (they have very different
+   x-heights). Values tuned by eye. */
+@font-face { font-family: 'Press Start 2P'; src: url('./fonts/PressStart2P-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url('./fonts/PixelifySans.ttf') format('truetype'); font-display: swap; size-adjust: 155%; } /* Latin-ext + Vietnamese */
+@font-face { font-family: 'Handjet';       src: url('./fonts/Handjet.ttf') format('truetype'); font-display: swap; size-adjust: 210%; }       /* Cyrillic + Hebrew (thin) */
+@font-face { font-family: 'DotGothic16';   src: url('./fonts/DotGothic16-Regular.ttf') format('truetype'); font-display: swap; size-adjust: 125%; } /* Japanese */
 
 :root {
   --bg: #0e1220;
   --ink: #eef2ff;
   --dim: #8b93ad;
   --accent: #ffb020;
-  --pixel: 'Press Start 2P', ui-monospace, "Courier New", monospace;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pixel: 'Press Start 2P', ui-monospace, "Courier New", monospace;
   font-family: var(--sans);
 }
 
-/* Press Start 2P only covers Latin-1; non-Latin scripts fall back to a readable
-   system stack (per-script pixel fonts are a later refinement). */
-html:not([data-script="latin"]) { --pixel: var(--sans); }
+/* Swap the pixel font by the script of the active locale (set on <html>). */
+:root[data-script="latinExt"] { --pixel: 'Pixelify Sans', var(--sans); }
+:root[data-script="cyrillic"] { --pixel: 'Handjet', var(--sans); }
+:root[data-script="hebrew"]   { --pixel: 'Handjet', var(--sans); }
+:root[data-script="cjk"]      { --pixel: 'DotGothic16', var(--sans); }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -38,9 +44,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .stat { display: flex; flex-direction: column; }
 .stat.center { flex: 1; align-items: center; }
 .stat.right { align-items: flex-end; }
-.stat label { font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em; color: #c3cce0; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
-.stat span { font-family: var(--pixel); font-size: 20px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-#score { font-size: 30px; color: var(--accent); }
+.stat label { font-family: var(--pixel); font-size: clamp(9px, 1.7vmin, 14px); letter-spacing: 0.06em; color: #c3cce0; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+.stat span { font-family: var(--pixel); font-size: clamp(18px, 4vmin, 34px); line-height: 1.25; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+#score { font-size: clamp(26px, 6vmin, 46px); color: var(--accent); }
 #time.danger { color: #ff4d4d; animation: pulse 0.5s ease-in-out infinite; }
 
 .bump { animation: bump 0.18s ease-out; }
@@ -50,20 +56,22 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 /* ── Next-shovel progress ────────────────────────────────────────────────── */
 #progress {
   position: fixed; left: 50%; transform: translateX(-50%);
-  top: calc(72px + env(safe-area-inset-top));
+  /* clears the HUD (which grows with the SCORE size) so it never overlaps */
+  top: calc(env(safe-area-inset-top) + 52px + 7vmin);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  pointer-events: none; user-select: none; text-align: center;
+  pointer-events: none; user-select: none; text-align: center; width: 100%;
 }
 #progLabel {
-  font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em;
+  font-family: var(--pixel); font-size: clamp(10px, 1.9vmin, 14px); letter-spacing: 0.06em;
   color: #c3cce0; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
-#progItems { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+#progItems { display: flex; gap: clamp(5px, 1vmin, 10px); flex-wrap: wrap; justify-content: center; max-width: 92vw; }
 .prog-item {
-  font-family: var(--pixel); font-size: 8px; color: var(--ink);
-  background: rgba(20, 26, 42, 0.5); border: 1px solid rgba(255,255,255,0.1);
+  font-family: var(--pixel); font-size: clamp(9px, 1.7vmin, 13px); color: var(--ink);
+  background: rgba(20, 26, 42, 0.55); border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px; padding: 4px 7px; white-space: nowrap;
 }
+.prog-item.zero { opacity: 0.4; }
 .prog-item.done { color: #0e1220; background: var(--accent); border-color: var(--accent); }
 
 /* ── Extraction flourish ─────────────────────────────────────────────────── */
@@ -87,7 +95,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   pointer-events: none; user-select: none;
 }
 #toolName {
-  font-family: var(--pixel); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
+  font-family: var(--pixel); font-size: clamp(10px, 2vmin, 15px); letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--ink); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   padding: 8px 16px; border-radius: 999px;
   background: rgba(20, 26, 42, 0.55); border: 1px solid rgba(255, 255, 255, 0.12);
@@ -108,16 +116,17 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 #overlay.hidden { opacity: 0; pointer-events: none; }
 #overlay-inner { text-align: center; max-width: 480px; padding: 24px; }
 #overlay-inner h1 {
-  font-family: var(--pixel); font-size: clamp(28px, 6.5vw, 54px); letter-spacing: 0.02em;
+  /* wordmark stays in the classic pixel font regardless of locale */
+  font-family: 'Press Start 2P', var(--pixel); font-size: clamp(28px, 6.5vw, 54px); letter-spacing: 0.02em;
   line-height: 1.15;
   background: linear-gradient(180deg, #fff, #9fb4ff); -webkit-background-clip: text;
   background-clip: text; color: transparent; margin-bottom: 20px;
 }
-#overlay-inner p { color: var(--dim); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
-#overlay-inner .bigscore { font-family: var(--pixel); font-size: 56px; color: var(--accent); margin: 12px 0; }
-#overlay-inner .reached { font-family: var(--pixel); font-size: 11px; color: var(--ink); margin: 4px 0 12px; }
+#overlay-inner p { font-family: var(--pixel); color: var(--dim); font-size: clamp(9px, 1.9vmin, 13px); line-height: 2.1; margin-bottom: 28px; }
+#overlay-inner .bigscore { font-family: var(--pixel); font-size: clamp(40px, 12vmin, 72px); color: var(--accent); margin: 12px 0; }
+#overlay-inner .reached { font-family: var(--pixel); font-size: clamp(9px, 1.9vmin, 13px); color: var(--ink); margin: 4px 0 12px; }
 #overlay-inner button {
-  font-family: var(--pixel); letter-spacing: 0.04em; font-size: 14px;
+  font-family: var(--pixel); letter-spacing: 0.04em; font-size: clamp(12px, 2.6vmin, 18px);
   color: #0e1220; background: var(--accent); border: none; border-radius: 12px;
   padding: 16px 32px; cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.35s ease;
@@ -135,6 +144,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   border-radius: 8px; padding: 8px 12px; cursor: pointer; max-width: 220px;
 }
 #overlay-inner .credit {
-  font-family: var(--pixel); font-size: 8px; letter-spacing: 0.04em;
-  color: var(--dim); margin-top: 28px; margin-bottom: 0; opacity: 0.8;
+  font-family: var(--pixel); font-size: clamp(7px, 1.4vmin, 10px); letter-spacing: 0.04em;
+  color: var(--dim); margin-top: 24px; margin-bottom: 0; opacity: 0.8; line-height: 1.8;
 }

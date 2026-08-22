@@ -96,7 +96,9 @@ export class Background {
   resize() {
     const fovV = THREE.MathUtils.degToRad(this.camera.fov);
     const h = 2 * DEPTH * Math.tan(fovV / 2);
-    this.mesh.scale.set(h * this.camera.aspect * 1.02, h * 1.02, 1);
+    // Over-scale generously so the backdrop always covers the whole screen,
+    // even with the camera's downward tilt and screen shake.
+    this.mesh.scale.set(h * this.camera.aspect * 1.35, h * 1.4, 1);
   }
 
   update(dt) {
