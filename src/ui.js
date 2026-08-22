@@ -48,7 +48,8 @@ export class UI {
       <p>Click to chip. Clear the cube, grab the loot inside.<br>
          Better tools appear as loot — grab them to dig faster.<br>
          <b>60 seconds. How many cubes can you crack?</b></p>
-      <button id="startBtn">START DIGGING</button>`;
+      <button id="startBtn">START DIGGING</button>
+      <p class="credit">© 2026 Charles Nguyen &amp; Aviah Morag</p>`;
     $('startBtn').onclick = onStart;
   }
 

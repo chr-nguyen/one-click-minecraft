@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "author": "Charles Nguyen and Aviah Morag",
+  "license": "UNLICENSED",
+  "copyright": "© 2026 Charles Nguyen and Aviah Morag",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
