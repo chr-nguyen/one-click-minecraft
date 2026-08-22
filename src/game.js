@@ -4,6 +4,7 @@ import { Particles, Shake } from './juice.js';
 import { particleColor, getMaterial } from './materials.js';
 import { TOOLS, toolPower } from './tools.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
+import { HeldTool } from './heldtool.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -12,6 +13,7 @@ export class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this._initScene();
+    this.held = new HeldTool(this.camera);
     this.particles = new Particles(this.scene, 1);
     this.shake = new Shake();
     this.ui = new UI();
@@ -46,6 +48,7 @@ export class Game {
     this.camBase = new THREE.Vector3(0, 2.5, 15);
     this.camera.position.copy(this.camBase);
     this.camera.lookAt(0, 0, 0);
+    this.scene.add(this.camera); // so the camera-parented held tool renders
 
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
     key.position.set(5, 8, 10);
@@ -97,6 +100,7 @@ export class Game {
   }
 
   _dig() {
+    this.held.swing(); // swing on every click, hit or miss
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hits = this.raycaster.intersectObjects(this.cube.meshes, false);
     if (!hits.length) return;
@@ -150,6 +154,7 @@ export class Game {
     if (loot.tool && TOOLS[loot.tool] && TOOLS[loot.tool].power > this.tool.power) {
       this.tool = TOOLS[loot.tool];
       this.ui.setTool(this.tool, true);
+      this.held.setTool(this.tool.id);
     }
     // brief beat, then next cube
     setTimeout(() => this._nextCube(), 550);
@@ -170,6 +175,7 @@ export class Game {
     this._lastClock = ROUND_SECONDS;
     this.ui.setScore(0);
     this.ui.setTool(this.tool);
+    this.held.setTool('hand');
     this.ui.hideOverlay();
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
@@ -199,6 +205,7 @@ export class Game {
       this.ui.setTime(this.timeLeft);
     }
     if (this.cube) this.cube.update(dt);
+    this.held.update(dt);
     this.particles.update(dt);
 
     // apply screen shake as camera offset
