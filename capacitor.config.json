@@ -1,0 +1,9 @@
+{
+  "appId": "com.justdig.app",
+  "appName": "JustDig",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0e1220"
+  }
+}
