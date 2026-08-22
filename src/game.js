@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Cube } from './cube.js';
 import { Particles, Shake } from './juice.js';
-import { particleColor, getMaterial } from './materials.js';
+import { particleColor, getMaterial, MATERIAL_DEFS } from './materials.js';
 import { TOOLS, bestTool, nextTool } from './tools.js';
 import { pickFunItem } from './objects.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
@@ -66,14 +66,6 @@ export class Game {
     this.scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x24304a, 0.9));
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.25));
 
-    // subtle ground glow plane for depth
-    const gGeo = new THREE.PlaneGeometry(60, 60);
-    const gMat = new THREE.MeshStandardMaterial({ color: 0x0a0e18, roughness: 1 });
-    const ground = new THREE.Mesh(gGeo, gMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -6;
-    this.scene.add(ground);
-
     this._resize();
     window.addEventListener('resize', () => this._resize());
   }
@@ -122,7 +114,17 @@ export class Game {
   }
 
   _updateProgress() {
-    this.ui.setProgress(nextTool(this.tool.tier), this.totals, (id) => getMaterial(id).name);
+    const nt = nextTool(this.tool.tier);
+    const recipe = nt ? nt.recipe : {};
+    const ids = new Set([
+      ...Object.keys(this.totals).filter((k) => this.totals[k] > 0),
+      ...Object.keys(recipe),
+    ]);
+    // ordered by material tier, showing everything collected + the next needs
+    const items = MATERIAL_DEFS.filter((m) => ids.has(m.id)).map((m) => ({
+      name: m.name, have: this.totals[m.id] || 0, need: recipe[m.id],
+    }));
+    this.ui.setProgress(nt ? nt.name : null, items);
   }
 
   _dig() {

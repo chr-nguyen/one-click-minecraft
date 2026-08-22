@@ -35,19 +35,17 @@ export class UI {
     }
   }
 
-  // Show progress toward the next shovel: one chip per required material with
-  // collected/required counts. `matName` maps a material id to its display name.
-  setProgress(nextTool, totals, matName) {
-    if (!nextTool) {
-      this.progLabel.textContent = 'MAX SHOVEL';
-      this.progItems.innerHTML = '';
-      return;
-    }
-    this.progLabel.textContent = `NEXT · ${nextTool.name}`;
-    this.progItems.innerHTML = Object.entries(nextTool.recipe).map(([mat, need]) => {
-      const have = Math.min(totals[mat] || 0, need);
-      const done = have >= need ? ' done' : '';
-      return `<span class="prog-item${done}">${matName(mat)} ${have}/${need}</span>`;
+  // Show everything collected this run as chips; ones the next shovel needs get
+  // a collected/required count and highlight when met. `items` is
+  // [{name, have, need?}] pre-ordered by the caller.
+  setProgress(nextName, items) {
+    this.progLabel.textContent = nextName ? `NEXT · ${nextName}` : 'MAX SHOVEL';
+    this.progItems.innerHTML = items.map(({ name, have, need }) => {
+      if (need != null) {
+        const done = have >= need ? ' done' : '';
+        return `<span class="prog-item${done}">${name} ${Math.min(have, need)}/${need}</span>`;
+      }
+      return `<span class="prog-item">${name} ${have}</span>`;
     }).join('');
   }
 
