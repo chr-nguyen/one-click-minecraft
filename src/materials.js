@@ -29,14 +29,20 @@ import * as THREE from 'three';
  * @property {number}  dyn.pitch    Sound pitch multiplier for this material.
  */
 
+// Charles's block progression (docs/game-progression.md): dirt → … → gold.
+// Ordered easy→hard; durability rises along the progression.
 /** @type {MaterialDef[]} */
 export const MATERIAL_DEFS = [
-  { id: 'dirt',     name: 'Dirt',     durability: 1, family: 'soft',    hsl: [0.08, 0.55, 0.34], colorJitter: 0.10, grain: 0.9,  roughness: 1.0,  metalness: 0.0,  emissive: 0,    crackTint: '#241809', spawnWeight: 5, dyn: { jiggle: 0.13, chips: 10, chipSpeed: 4,   pitch: 1.0 } },
-  { id: 'sand',     name: 'Sand',     durability: 1, family: 'soft',    hsl: [0.12, 0.55, 0.60], colorJitter: 0.08, grain: 1.0,  roughness: 1.0,  metalness: 0.0,  emissive: 0,    crackTint: '#3a2f14', spawnWeight: 3, dyn: { jiggle: 0.18, chips: 14, chipSpeed: 5,   pitch: 1.15 } },
-  { id: 'stone',    name: 'Stone',    durability: 3, family: 'rock',    hsl: [0.62, 0.04, 0.48], colorJitter: 0.09, grain: 0.6,  roughness: 0.9,  metalness: 0.02, emissive: 0,    crackTint: '#181c22', spawnWeight: 6, dyn: { jiggle: 0.14, chips: 12, chipSpeed: 5,   pitch: 1.0 } },
-  { id: 'ice',      name: 'Ice',      durability: 2, family: 'crystal', hsl: [0.55, 0.45, 0.72], colorJitter: 0.06, grain: 0.25, roughness: 0.25, metalness: 0.0,  emissive: 0.04, crackTint: '#dff2ff', spawnWeight: 2, dyn: { jiggle: 0.10, chips: 16, chipSpeed: 6.5, pitch: 1.5 } },
-  { id: 'ore',      name: 'Ore',      durability: 4, family: 'metal',   hsl: [0.58, 0.10, 0.42], colorJitter: 0.12, grain: 0.7,  roughness: 0.7,  metalness: 0.35, emissive: 0.02, crackTint: '#12161e', spawnWeight: 3, dyn: { jiggle: 0.12, chips: 12, chipSpeed: 5,   pitch: 0.9 } },
-  { id: 'obsidian', name: 'Obsidian', durability: 6, family: 'crystal', hsl: [0.75, 0.30, 0.14], colorJitter: 0.05, grain: 0.4,  roughness: 0.35, metalness: 0.15, emissive: 0.02, crackTint: '#d8c8ff', spawnWeight: 1, dyn: { jiggle: 0.08, chips: 10, chipSpeed: 5,   pitch: 0.7 } },
+  { id: 'dirt',    name: 'Dirt',    tier: 1,  durability: 1, family: 'soft',  hsl: [0.08, 0.50, 0.33], colorJitter: 0.10, grain: 0.9,  roughness: 1.0,  metalness: 0.0,  emissive: 0, crackTint: '#20140a', spawnWeight: 7, dyn: { jiggle: 0.13, chips: 10, chipSpeed: 4,   pitch: 1.05 } },
+  { id: 'mud',     name: 'Mud',     tier: 2,  durability: 1, family: 'soft',  hsl: [0.09, 0.42, 0.23], colorJitter: 0.10, grain: 0.85, roughness: 1.0,  metalness: 0.0,  emissive: 0, crackTint: '#160d05', spawnWeight: 6, dyn: { jiggle: 0.16, chips: 11, chipSpeed: 4,   pitch: 0.95 } },
+  { id: 'clay',    name: 'Clay',    tier: 3,  durability: 2, family: 'soft',  hsl: [0.045,0.45, 0.44], colorJitter: 0.08, grain: 0.6,  roughness: 0.95, metalness: 0.0,  emissive: 0, crackTint: '#2a160c', spawnWeight: 6, dyn: { jiggle: 0.12, chips: 12, chipSpeed: 4.5, pitch: 1.1 } },
+  { id: 'stone',   name: 'Stone',   tier: 4,  durability: 3, family: 'rock',  hsl: [0.62, 0.03, 0.50], colorJitter: 0.09, grain: 0.6,  roughness: 0.9,  metalness: 0.02, emissive: 0, crackTint: '#181c22', spawnWeight: 6, dyn: { jiggle: 0.14, chips: 12, chipSpeed: 5,   pitch: 1.0 } },
+  { id: 'granite', name: 'Granite', tier: 5,  durability: 4, family: 'rock',  hsl: [0.96, 0.14, 0.46], colorJitter: 0.11, grain: 0.7,  roughness: 0.85, metalness: 0.03, emissive: 0, crackTint: '#20141a', spawnWeight: 4, dyn: { jiggle: 0.12, chips: 13, chipSpeed: 5,   pitch: 0.95 } },
+  { id: 'iron',    name: 'Iron',    tier: 6,  durability: 5, family: 'metal', hsl: [0.08, 0.12, 0.52], colorJitter: 0.10, grain: 0.55, roughness: 0.6,  metalness: 0.4,  emissive: 0.01, crackTint: '#14161c', spawnWeight: 3, dyn: { jiggle: 0.11, chips: 12, chipSpeed: 5,   pitch: 0.9 } },
+  { id: 'coal',    name: 'Coal',    tier: 7,  durability: 3, family: 'rock',  hsl: [0.0,  0.0,  0.13], colorJitter: 0.10, grain: 0.8,  roughness: 0.7,  metalness: 0.05, emissive: 0, crackTint: '#c9ccd4', spawnWeight: 5, dyn: { jiggle: 0.13, chips: 12, chipSpeed: 5,   pitch: 1.0 } },
+  { id: 'copper',  name: 'Copper',  tier: 8,  durability: 5, family: 'metal', hsl: [0.055,0.62, 0.47], colorJitter: 0.11, grain: 0.55, roughness: 0.55, metalness: 0.45, emissive: 0.02, crackTint: '#2a1408', spawnWeight: 3, dyn: { jiggle: 0.11, chips: 12, chipSpeed: 5,   pitch: 0.92 } },
+  { id: 'tin',     name: 'Tin',     tier: 9,  durability: 4, family: 'metal', hsl: [0.58, 0.04, 0.66], colorJitter: 0.09, grain: 0.5,  roughness: 0.5,  metalness: 0.5,  emissive: 0.02, crackTint: '#171a1f', spawnWeight: 3, dyn: { jiggle: 0.11, chips: 12, chipSpeed: 5.5, pitch: 1.05 } },
+  { id: 'gold',    name: 'Gold',    tier: 10, durability: 6, family: 'metal', hsl: [0.125,0.85, 0.55], colorJitter: 0.10, grain: 0.45, roughness: 0.35, metalness: 0.7,  emissive: 0.05, crackTint: '#3a2800', spawnWeight: 1, dyn: { jiggle: 0.10, chips: 14, chipSpeed: 6,   pitch: 0.85 } },
 ];
 
 const byId = new Map(MATERIAL_DEFS.map((m) => [m.id, m]));
