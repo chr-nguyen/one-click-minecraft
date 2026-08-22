@@ -143,6 +143,10 @@ export class Game {
   resume() {
     if (this.state !== 'paused') return;
     this.state = 'playing';
+    // Re-render translated HUD (tool label + material list) in case the language
+    // was changed in the pause menu — apply it immediately, not on next collect.
+    this.ui.setTool(this.tool);
+    this._updateProgress();
     this.ui.hideOverlay();
   }
 
