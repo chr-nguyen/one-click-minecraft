@@ -25,21 +25,42 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   position: fixed; top: 0; left: 0; right: 0;
   display: flex; gap: 12px;
   padding: calc(16px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right))
-           16px calc(20px + env(safe-area-inset-left));
+           18px calc(20px + env(safe-area-inset-left));
   pointer-events: none; user-select: none;
   font-variant-numeric: tabular-nums;
+  /* scrim so the controls stay legible over any background level */
+  background: linear-gradient(to bottom, rgba(6,8,16,0.72) 0%, rgba(6,8,16,0.4) 55%, rgba(6,8,16,0) 100%);
 }
 .stat { display: flex; flex-direction: column; }
 .stat.center { flex: 1; align-items: center; }
 .stat.right { align-items: flex-end; }
-.stat label { font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em; color: var(--dim); }
-.stat span { font-family: var(--pixel); font-size: 20px; line-height: 1.2; }
+.stat label { font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em; color: #c3cce0; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+.stat span { font-family: var(--pixel); font-size: 20px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
 #score { font-size: 30px; color: var(--accent); }
 #time.danger { color: #ff4d4d; animation: pulse 0.5s ease-in-out infinite; }
 
 .bump { animation: bump 0.18s ease-out; }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+
+/* ── Next-shovel progress ────────────────────────────────────────────────── */
+#progress {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: calc(72px + env(safe-area-inset-top));
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none; user-select: none; text-align: center;
+}
+#progLabel {
+  font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em;
+  color: #c3cce0; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+#progItems { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.prog-item {
+  font-family: var(--pixel); font-size: 8px; color: var(--ink);
+  background: rgba(20, 26, 42, 0.5); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px; padding: 4px 7px; white-space: nowrap;
+}
+.prog-item.done { color: #0e1220; background: var(--accent); border-color: var(--accent); }
 
 /* ── Extraction flourish ─────────────────────────────────────────────────── */
 #flourish {
@@ -90,6 +111,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 }
 #overlay-inner p { color: var(--dim); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
 #overlay-inner .bigscore { font-family: var(--pixel); font-size: 56px; color: var(--accent); margin: 12px 0; }
+#overlay-inner .reached { font-family: var(--pixel); font-size: 11px; color: var(--ink); margin: 4px 0 12px; }
 #overlay-inner button {
   font-family: var(--pixel); letter-spacing: 0.04em; font-size: 14px;
   color: #0e1220; background: var(--accent); border: none; border-radius: 12px;

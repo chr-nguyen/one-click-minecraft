@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { Cube } from './cube.js';
 import { Particles, Shake } from './juice.js';
 import { particleColor, getMaterial } from './materials.js';
-import { TOOLS, getTool, bestTool } from './tools.js';
+import { TOOLS, bestTool, nextTool } from './tools.js';
 import { pickFunItem } from './objects.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { HeldTool } from './heldtool.js';
+import { Background } from './background.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -15,6 +16,7 @@ export class Game {
     this.canvas = canvas;
     this._initScene();
     this.held = new HeldTool(this.camera);
+    this.bg = new Background(this.scene, this.camera);
     this.particles = new Particles(this.scene, 1);
     this.shake = new Shake();
     this.ui = new UI();
@@ -24,10 +26,10 @@ export class Game {
     this.state = 'idle'; // idle | playing | over
     this.timeLeft = ROUND_SECONDS;
     this.score = 0;
-    // Persistent, automatic progression: cumulative material totals and the
-    // best shovel they've earned carry across runs (localStorage).
-    this.totals = this._loadTotals();
-    this.tool = getTool(localStorage.getItem('justdig.tool') || 'hand');
+    // Progression is PER-RUN: material totals and the shovel reset every round.
+    // Only the best score persists.
+    this.totals = {};
+    this.tool = TOOLS.hand;
     this.best = Number(localStorage.getItem('justdig.best') || 0);
     this.cubeSeed = 1;
     this.cube = null;
@@ -82,6 +84,7 @@ export class Game {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this._fitCamera();
+    this.bg?.resize();
   }
 
   // Pull the camera to whatever distance fits the block on this aspect ratio,
@@ -118,13 +121,8 @@ export class Game {
     return this.tool.power;
   }
 
-  _loadTotals() {
-    try { return JSON.parse(localStorage.getItem('justdig.mats') || '{}'); }
-    catch { return {}; }
-  }
-  _persist() {
-    localStorage.setItem('justdig.mats', JSON.stringify(this.totals));
-    localStorage.setItem('justdig.tool', this.tool.id);
+  _updateProgress() {
+    this.ui.setProgress(nextTool(this.tool.tier), this.totals, (id) => getMaterial(id).name);
   }
 
   _dig() {
@@ -196,10 +194,11 @@ export class Game {
       this.tool = best;
       this.ui.setTool(best, true);
       this.held.setTool(best.id);
+      this.bg.setTier(best.tier, true); // scroll deeper into the earth
       this.shake.add(0.5, 0.5);
       sfx.reveal(20);
     }
-    this._persist();
+    this._updateProgress();
 
     // Flourish priority: upgrade > fun item > material collected.
     if (upgraded) this.ui.flourish(`NEW! ${best.name}`, '#ffd54a');
@@ -220,12 +219,15 @@ export class Game {
     this.state = 'playing';
     this.timeLeft = ROUND_SECONDS;
     this.score = 0;
-    // NOTE: material totals and the earned shovel persist across runs — only
-    // the per-run score and clock reset.
+    // Fresh climb every run: back to a hand and empty materials.
+    this.totals = {};
+    this.tool = TOOLS.hand;
     this._lastClock = ROUND_SECONDS;
     this.ui.setScore(0);
     this.ui.setTool(this.tool);
     this.held.setTool(this.tool.id);
+    this.bg.setTier(0, false); // back to the surface
+    this._updateProgress();
     this.ui.hideOverlay();
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
@@ -241,7 +243,7 @@ export class Game {
       localStorage.setItem('justdig.best', String(this.best));
       this.ui.setBest(this.best);
     }
-    this.ui.showGameOver(this.score, this.best, () => this.start());
+    this.ui.showGameOver(this.score, this.best, this.tool.name, () => this.start());
   }
 
   _loop() {
@@ -256,6 +258,7 @@ export class Game {
     }
     if (this.cube) this.cube.update(dt);
     this.held.update(dt);
+    this.bg.update(dt);
     this.particles.update(dt);
 
     // apply screen shake as camera offset

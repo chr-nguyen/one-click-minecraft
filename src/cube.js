@@ -79,12 +79,13 @@ export class Cube {
     this.revealT = 0;
     this.jig = null;
 
-    // pick the block's material (luck), biased toward the player's level so the
-    // materials the next shovel needs actually turn up. Center a couple tiers
-    // above the current tool; falls off with distance.
-    const center = this.spawnTier + 2;
+    // Pick the block's material (luck), biased a few tiers AHEAD of the current
+    // shovel so the materials the next upgrade needs keep appearing — the climb
+    // to gold stays reachable in 60s. The wide falloff keeps a luck tail, so a
+    // hot run can jump ahead but the average run still has to work for it.
+    const center = this.spawnTier + 3;
     this.matDef = weightedPick(
-      MATERIAL_DEFS.map((m) => ({ ...m, weight: m.spawnWeight * Math.exp(-((m.tier - center) ** 2) / 8) })),
+      MATERIAL_DEFS.map((m) => ({ ...m, weight: m.spawnWeight * Math.exp(-((m.tier - center) ** 2) / 16) })),
       this.rng,
     );
     this.matId = this.matDef.id;

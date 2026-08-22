@@ -45,3 +45,13 @@ export function bestTool(totals) {
   }
   return best;
 }
+
+// The immediate next shovel to aim for (smallest tier above `tier`), or null if
+// already at the top — used to show progress toward the next upgrade.
+export function nextTool(tier) {
+  let next = null;
+  for (const t of Object.values(TOOLS)) {
+    if (t.tier > tier && (!next || t.tier < next.tier)) next = t;
+  }
+  return next;
+}

@@ -8,6 +8,8 @@ export class UI {
     this.score = $('score');
     this.best = $('best');
     this.toolName = $('toolName');
+    this.progLabel = $('progLabel');
+    this.progItems = $('progItems');
     this.overlay = $('overlay');
     this.overlayInner = $('overlay-inner');
     this.flourishEl = $('flourish');
@@ -33,6 +35,22 @@ export class UI {
     }
   }
 
+  // Show progress toward the next shovel: one chip per required material with
+  // collected/required counts. `matName` maps a material id to its display name.
+  setProgress(nextTool, totals, matName) {
+    if (!nextTool) {
+      this.progLabel.textContent = 'MAX SHOVEL';
+      this.progItems.innerHTML = '';
+      return;
+    }
+    this.progLabel.textContent = `NEXT · ${nextTool.name}`;
+    this.progItems.innerHTML = Object.entries(nextTool.recipe).map(([mat, need]) => {
+      const have = Math.min(totals[mat] || 0, need);
+      const done = have >= need ? ' done' : '';
+      return `<span class="prog-item${done}">${matName(mat)} ${have}/${need}</span>`;
+    }).join('');
+  }
+
   flourish(text, color) {
     this.flourishEl.textContent = text;
     this.flourishEl.style.color = color;
@@ -53,13 +71,14 @@ export class UI {
     $('startBtn').onclick = onStart;
   }
 
-  showGameOver(score, best, onRestart) {
+  showGameOver(score, best, toolReached, onRestart) {
     this.overlay.classList.remove('hidden');
     const record = score >= best && score > 0;
     this.overlayInner.innerHTML = `
       <h1>TIME!</h1>
       <p class="bigscore">${score}</p>
-      <p>${record ? '🏆 NEW BEST!' : `Best: ${best}`}</p>
+      <p class="reached">Reached: ${toolReached}</p>
+      <p>${record ? 'NEW BEST!' : `Best: ${best}`}</p>
       <button id="againBtn">GO AGAIN</button>`;
     $('againBtn').onclick = onRestart;
   }
