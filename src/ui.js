@@ -47,7 +47,7 @@ export class UI {
   showStart(onStart) {
     this.overlay.classList.remove('hidden');
     this.overlayInner.innerHTML = `
-      <h1>VOXEL DIG</h1>
+      <h1>JUSTDIG</h1>
       <p>Click to chip. Clear the cube, grab the loot inside.<br>
          Better tools appear as loot — grab them to dig faster.<br>
          <b>60 seconds. How many cubes can you crack?</b></p>
