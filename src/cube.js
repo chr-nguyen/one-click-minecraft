@@ -70,6 +70,7 @@ export class Cube {
     this.reduceMotion = reduceMotion;
     this.scene = scene;
     this.group = new THREE.Group();
+    this.group.rotation.y = 0.5; // start on a corner (camera elevation shows the top)
     scene.add(this.group);
 
     this._v = new THREE.Vector3();

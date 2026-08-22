@@ -138,6 +138,34 @@ export function baseColor(id) {
   return new THREE.Color(r / 255, g / 255, b / 255);
 }
 
+// Small rendered pixel icon per material (a mini multi-shade block face in the
+// material's color) as a data URL, for the collected-materials list. Cached.
+const iconCache = new Map();
+export function materialIcon(id) {
+  if (iconCache.has(id)) return iconCache.get(id);
+  const def = getMaterial(id);
+  const [h, s, l] = def.hsl;
+  const SZ = 32, CELLS = 6, cell = SZ / CELLS;
+  const c = document.createElement('canvas');
+  c.width = c.height = SZ;
+  const ctx = c.getContext('2d');
+  const amp = 0.12 + def.grain * 0.14;
+  for (let j = 0; j < CELLS; j++) for (let i = 0; i < CELLS; i++) {
+    let shade = 1 + (hash2(i * 7 + 1, j * 13 + 3) - 0.5) * 2 * amp;
+    if (j === 0) shade += 0.1; if (j === CELLS - 1) shade -= 0.12; // top light / bottom dark
+    const [r, g, b] = hslToRgb(h, s, Math.max(0.05, Math.min(0.95, l * Math.max(0.4, shade))));
+    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
+    ctx.fillRect(Math.floor(i * cell), Math.floor(j * cell), Math.ceil(cell), Math.ceil(cell));
+  }
+  // subtle outline for definition on any background
+  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, SZ - 2, SZ - 2);
+  const url = c.toDataURL('image/png');
+  iconCache.set(id, url);
+  return url;
+}
+
 // The glowing nugget of material that pops out when a block shatters — a
 // brighter, punchier version of the block's own color.
 export function nuggetMaterial(id) {

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Cube } from './cube.js';
 import { Particles, Shake } from './juice.js';
 import { particleColor, getMaterial, MATERIAL_DEFS } from './materials.js';
+import { materialIcon } from './maticons.js';
 import { TOOLS, bestTool, nextTool } from './tools.js';
 import { pickFunItem } from './objects.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
@@ -90,7 +91,10 @@ export class Game {
     const fovV = THREE.MathUtils.degToRad(this.camera.fov);
     const fovH = 2 * Math.atan(Math.tan(fovV / 2) * this.camera.aspect);
     const dist = Math.max(R / Math.sin(fovV / 2), R / Math.sin(fovH / 2));
-    this.camBase.set(0, dist * 0.14, dist);
+    // Elevate the camera ~15° so the top face reads as 3D without going top-down,
+    // keeping the same distance so framing is preserved.
+    const elev = 0.26;
+    this.camBase.set(0, dist * Math.sin(elev), dist * Math.cos(elev));
     this.camera.position.copy(this.camBase);
     this.camera.lookAt(0, 0, 0);
   }
@@ -132,7 +136,8 @@ export class Game {
     const recipe = nt ? nt.recipe : {};
     // Show ALL material types (tier order) so every type is visibly tracked.
     const items = MATERIAL_DEFS.map((m) => ({
-      name: t('mat_' + m.id), have: this.totals[m.id] || 0, need: recipe[m.id],
+      icon: materialIcon(m.id), name: t('mat_' + m.id),
+      have: this.totals[m.id] || 0, need: recipe[m.id],
     }));
     const label = nt ? t('next', { tool: t('tool_' + nt.id) }) : t('maxShovel');
     this.ui.setProgress(label, items);

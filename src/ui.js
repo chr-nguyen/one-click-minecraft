@@ -43,12 +43,15 @@ export class UI {
   // items: [{name, have, need?}] pre-ordered by the caller. `label` is localized.
   setProgress(label, items) {
     this.progLabel.textContent = label;
-    this.progItems.innerHTML = items.map(({ name, have, need }) => {
+    this.progItems.innerHTML = items.map(({ icon, name, have, need }) => {
+      const ic = `<img class="prog-ic" src="${icon}" alt="${name}">`;
+      const nm = `<span class="prog-name">${name}</span>`;
       if (need != null) {
-        const done = have >= need ? ' done' : '';
-        return `<span class="prog-item${done}">${name} ${Math.min(have, need)}/${need}</span>`;
+        const cls = have >= need ? ' done' : ' need'; // highlight the next-shovel targets
+        return `<span class="prog-item${cls}" title="${name}">${ic}${nm}<b>${Math.min(have, need)}/${need}</b></span>`;
       }
-      return `<span class="prog-item">${name} ${have}</span>`;
+      const zero = have === 0 ? ' zero' : '';
+      return `<span class="prog-item${zero}" title="${name}">${ic}${nm}<b>${have}</b></span>`;
     }).join('');
   }
 

@@ -65,11 +65,12 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
 /* ── Next-shovel progress ────────────────────────────────────────────────── */
 #progress {
-  position: fixed; left: 50%; transform: translateX(-50%);
+  /* left:0/right:0 (no transform) so the desktop fixed table is viewport-anchored */
+  position: fixed; left: 0; right: 0;
   /* clears the HUD (which grows with the SCORE size) so it never overlaps */
   top: calc(env(safe-area-inset-top) + 52px + 7vmin);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  pointer-events: none; user-select: none; text-align: center; width: 100%;
+  pointer-events: none; user-select: none; text-align: center;
 }
 #progLabel {
   font-family: var(--pixel); font-size: calc(var(--ui-scale) * clamp(10px, 1.9vmin, 14px)); letter-spacing: 0.06em;
@@ -77,12 +78,37 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 }
 #progItems { display: flex; gap: clamp(5px, 1vmin, 10px); flex-wrap: wrap; justify-content: center; max-width: 92vw; }
 .prog-item {
+  display: inline-flex; align-items: center; gap: 5px;
   font-family: var(--pixel); font-size: calc(var(--ui-scale) * clamp(9px, 1.7vmin, 13px)); color: var(--ink);
   background: rgba(20, 26, 42, 0.55); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 6px; padding: 4px 7px; white-space: nowrap;
+  border-radius: 6px; padding: 4px 8px; white-space: nowrap;
 }
+.prog-ic {
+  width: calc(var(--ui-scale) * clamp(14px, 2.6vmin, 20px));
+  height: calc(var(--ui-scale) * clamp(14px, 2.6vmin, 20px));
+  image-rendering: pixelated; border-radius: 2px; flex: none;
+}
+.prog-name { display: none; } /* shown only in the desktop vertical table */
 .prog-item.zero { opacity: 0.4; }
+.prog-item.need { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); } /* next-shovel target */
 .prog-item.done { color: #0e1220; background: var(--accent); border-color: var(--accent); }
+
+/* Desktop (roomy landscape): NEXT label stays centered up top; the material
+   table docks to the leading edge as a vertical panel WITH names.
+   Portrait / phones keep the horizontal top row (base rules). */
+@media (min-width: 900px) and (min-height: 640px) {
+  #progItems {
+    position: fixed; top: 110px; left: 14px; right: auto;
+    flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 6px;
+    width: 220px; max-width: 40vw;
+    background: rgba(6, 8, 16, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; padding: 10px;
+  }
+  :root[dir="rtl"] #progItems { left: auto; right: 14px; } /* dock to the right in RTL */
+  .prog-name { display: inline; flex: 1 1 auto; text-align: start; overflow: hidden; text-overflow: ellipsis; }
+  .prog-item { justify-content: flex-start; width: 100%; }
+  .prog-item b { margin-inline-start: auto; }
+}
 
 /* ── Extraction flourish ─────────────────────────────────────────────────── */
 #flourish {

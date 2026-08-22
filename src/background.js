@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 
-import handUrl from './assets/backgrounds/grassy-field.webp';
-import clayUrl from './assets/backgrounds/cliff-valley.webp';
-import stoneUrl from './assets/backgrounds/stone-cave.webp';
-import ironUrl from './assets/backgrounds/deep-cave.webp';
-import steelUrl from './assets/backgrounds/steel-granite-depth.webp';
-import copperUrl from './assets/backgrounds/copper-cavern.webp';
-import bronzeUrl from './assets/backgrounds/bronze-depth.webp';
-import goldUrl from './assets/backgrounds/lava-cave.webp';
+import handUrl from './assets/backgrounds/grassy-field.jpg';
+import clayUrl from './assets/backgrounds/cliff-valley.jpg';
+import stoneUrl from './assets/backgrounds/stone-cave.jpg';
+import ironUrl from './assets/backgrounds/deep-cave.jpg';
+import steelUrl from './assets/backgrounds/steel-granite-depth.jpg';
+import copperUrl from './assets/backgrounds/copper-cavern.jpg';
+import bronzeUrl from './assets/backgrounds/bronze-depth.jpg';
+import goldUrl from './assets/backgrounds/lava-cave.jpg';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DESCENT BACKGROUND — Aviah's tier-driven background API, backed by the eight
