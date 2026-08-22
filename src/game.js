@@ -8,6 +8,7 @@ import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { HeldTool } from './heldtool.js';
 import { Background } from './background.js';
 import { t } from './i18n.js';
+import { effectiveReduceMotion } from './a11y.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -23,6 +24,7 @@ export class Game {
     this.ui = new UI();
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+    this.reduce = effectiveReduceMotion(); // re-read each frame so settings apply live
 
     this.state = 'idle'; // idle | playing | over
     this.timeLeft = ROUND_SECONDS;
@@ -106,6 +108,17 @@ export class Game {
     };
     this.canvas.addEventListener('mousedown', onDown);
     this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
+
+    // Keyboard / alternate input: Space or Enter digs at the block center.
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat || this.state !== 'playing') return;
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        initAudio(); resumeAudio();
+        this.pointer.set(0, 0.05); // center → hits the block
+        this._dig();
+      }
+    });
   }
 
   // Current shovel's dig power. Durability sets the pace; stronger shovels
@@ -212,7 +225,7 @@ export class Game {
     if (this.state !== 'playing') return;
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
-    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier, reduceMotion: this.reduce });
   }
 
   start() {
@@ -232,7 +245,7 @@ export class Game {
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
-    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier, reduceMotion: this.reduce });
   }
 
   _end() {
@@ -248,6 +261,7 @@ export class Game {
 
   _loop() {
     const dt = Math.min(this._clock.getDelta(), 0.05);
+    this.reduce = effectiveReduceMotion();
     if (this.state === 'playing') {
       this.timeLeft -= dt;
       if (this.timeLeft <= 0) { this.timeLeft = 0; this._end(); }
@@ -261,8 +275,8 @@ export class Game {
     this.bg.update(dt);
     this.particles.update(dt);
 
-    // apply screen shake as camera offset
-    const s = this.shake.sample(dt);
+    // apply screen shake as camera offset (skipped under reduced-motion)
+    const s = this.reduce ? { x: 0, y: 0 } : this.shake.sample(dt);
     this.camera.position.set(this.camBase.x + s.x, this.camBase.y + s.y, this.camBase.z);
     this.camera.lookAt(0, 0, 0);
 

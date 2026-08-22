@@ -1,4 +1,5 @@
 import { t, LOCALES, getLocale, setLocale } from './i18n.js';
+import { isNativePlatform, getA11y, setA11y } from './a11y.js';
 
 // Thin DOM layer over elements declared in index.html. No framework.
 
@@ -73,9 +74,37 @@ export class UI {
       <p>${t('htp1')}<br>${t('htp2')}<br><b>${t('challenge', { sec: 60 })}</b></p>
       <button id="startBtn">${t('start')}</button>
       ${this._languagePicker()}
+      ${isNativePlatform() ? '' : `<button id="a11yBtn" class="linkbtn">${t('a11yOpen')}</button>`}
       <p class="credit">© 2026 Charles Nguyen &amp; Aviah Morag</p>`;
-    $('startBtn').onclick = () => this._onStart && this._onStart();
+    const b = $('startBtn');
+    b.onclick = () => this._onStart && this._onStart();
     this._wireLang(() => this.showStart());
+    const ab = $('a11yBtn');
+    if (ab) ab.onclick = () => this.showAccessibility();
+  }
+
+  // Web-only accessibility settings (iOS follows system settings automatically).
+  showAccessibility() {
+    const a = getA11y();
+    const sizeBtn = (val, key) =>
+      `<button class="chip${a.textScale === val ? ' on' : ''}" data-scale="${val}">${t(key)}</button>`;
+    this.overlay.classList.remove('hidden');
+    this.overlayInner.innerHTML = `
+      <h1 class="sub">${t('a11yTitle')}</h1>
+      <div class="a11y-item">
+        <div class="a11y-label">${t('a11yMotion')}</div>
+        <button id="motionToggle" class="switch${a.reduceMotion ? ' on' : ''}" role="switch" aria-checked="${a.reduceMotion}" aria-label="${t('a11yMotion')}"><span class="knob"></span></button>
+      </div>
+      <div class="a11y-item">
+        <div class="a11y-label">${t('a11yText')}</div>
+        <div class="chips">${sizeBtn(1, 'sizeS')}${sizeBtn(1.25, 'sizeM')}${sizeBtn(1.5, 'sizeL')}</div>
+      </div>
+      <button id="a11yBack">${t('back')}</button>`;
+    $('motionToggle').onclick = () => { setA11y({ reduceMotion: !getA11y().reduceMotion }); this.showAccessibility(); };
+    this.overlayInner.querySelectorAll('[data-scale]').forEach((el) => {
+      el.onclick = () => { setA11y({ textScale: Number(el.dataset.scale) }); this.showAccessibility(); };
+    });
+    $('a11yBack').onclick = () => this.showStart();
   }
 
   showGameOver(score, best, toolReached, onRestart) {

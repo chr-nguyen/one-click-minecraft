@@ -24,6 +24,8 @@ export const MESSAGES = {
     tool_iron_shovel: 'Iron Shovel', tool_steel_shovel: 'Steel Shovel', tool_copper_shovel: 'Copper Shovel',
     tool_bronze_shovel: 'Bronze Shovel', tool_gold_shovel: 'Gold Alloy Shovel',
     item_boot: 'Old Boot', item_ham: 'Ham Sandwich', item_shirt: 'Band T-Shirt', item_trex: 'T-Rex Skull', item_gold: 'Gold Loot',
+    a11yOpen: 'Accessibility', a11yTitle: 'Accessibility', a11yMotion: 'Reduce Motion', a11yText: 'Text Size',
+    sizeS: 'Normal', sizeM: 'Large', sizeL: 'Larger', back: 'Back',
   },
   es: {
     start: 'A CAVAR',
@@ -238,4 +240,27 @@ const NAMES = {
 
 for (const [loc, names] of Object.entries(NAMES)) {
   MESSAGES[loc] = { ...(MESSAGES[loc] || {}), ...names };
+}
+
+// Accessibility panel strings per locale (a11yOpen == a11yTitle).
+const A = (open, motion, text, s, m, l, back) =>
+  ({ a11yOpen: open, a11yTitle: open, a11yMotion: motion, a11yText: text, sizeS: s, sizeM: m, sizeL: l, back });
+const A11Y = {
+  es: A('Accesibilidad','Reducir movimiento','Tamaño del texto','Normal','Grande','Más grande','Atrás'),
+  fr: A('Accessibilité','Réduire les animations','Taille du texte','Normal','Grand','Très grand','Retour'),
+  'pt-BR': A('Acessibilidade','Reduzir movimento','Tamanho do texto','Normal','Grande','Maior','Voltar'),
+  'pt-PT': A('Acessibilidade','Reduzir movimento','Tamanho do texto','Normal','Grande','Maior','Voltar'),
+  gl: A('Accesibilidade','Reducir movemento','Tamaño do texto','Normal','Grande','Meirande','Volver'),
+  ary: A('Accessibilité','N9es l-7araka','7ajm l-ktaba','3adi','Kbir','Kbir bzzaf','Rje3'),
+  cs: A('Přístupnost','Omezit pohyb','Velikost textu','Normální','Velký','Větší','Zpět'),
+  sk: A('Prístupnosť','Obmedziť pohyb','Veľkosť textu','Normálna','Veľká','Väčšia','Späť'),
+  vi: A('Trợ năng','Giảm chuyển động','Cỡ chữ','Bình thường','Lớn','Lớn hơn','Quay lại'),
+  ru: A('Доступность','Меньше движения','Размер текста','Обычный','Крупный','Очень крупный','Назад'),
+  uk: A('Доступність','Менше руху','Розмір тексту','Звичайний','Великий','Найбільший','Назад'),
+  bg: A('Достъпност','По-малко движение','Размер на текста','Нормален','Голям','По-голям','Назад'),
+  ja: A('アクセシビリティ','モーションを減らす','文字サイズ','標準','大','特大','戻る'),
+  he: A('נגישות','הפחתת תנועה','גודל טקסט','רגיל','גדול','גדול יותר','חזרה'),
+};
+for (const [loc, x] of Object.entries(A11Y)) {
+  MESSAGES[loc] = { ...(MESSAGES[loc] || {}), ...x };
 }

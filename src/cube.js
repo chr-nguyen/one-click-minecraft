@@ -64,9 +64,10 @@ function crackTextures() {
 }
 
 export class Cube {
-  constructor(scene, { seed = 1, spawnTier = 0 } = {}) {
+  constructor(scene, { seed = 1, spawnTier = 0, reduceMotion = false } = {}) {
     this.rng = rng32(seed);
     this.spawnTier = spawnTier; // biases which materials appear toward your level
+    this.reduceMotion = reduceMotion;
     this.scene = scene;
     this.group = new THREE.Group();
     scene.add(this.group);
@@ -200,16 +201,17 @@ export class Cube {
       }
     }
 
+    const rot = this.reduceMotion ? 0.2 : 1;
     if (!this.extracted) {
-      this.group.rotation.y += dt * 0.25;
+      this.group.rotation.y += dt * 0.25 * rot;
     } else {
       // loot pop: scale up with an overshoot, spin on the reveal beat
       this.revealT += dt;
       const t = Math.min(1, this.revealT / 0.35);
       const s = 0.6 * (t * t * (3 - 2 * t)) * 1.6; // smoothstep → ~1.5x, fits inside old block
       this.objMesh.scale.setScalar(s);
-      this.objMesh.rotation.y += dt * 3;
-      this.group.rotation.y += dt * 1.2;
+      this.objMesh.rotation.y += dt * 3 * rot;
+      this.group.rotation.y += dt * 1.2 * rot;
     }
   }
 
