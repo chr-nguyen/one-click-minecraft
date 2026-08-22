@@ -5,7 +5,7 @@ block material progression
 3. clay
 4. stone
 5. granite
-6. iron 
+6. iron
 7. coal
 8. copper
 9. tin
@@ -16,7 +16,7 @@ block material progression
 
 Tool progression
 
-1. clay shovel - 10 clay 
+1. clay shovel - 10 clay
 2. stone shovel - 10 stone
 3. iron shovel - 10 coal + 10 iron
 4. steel shovel - 10 coal + 10 granite + 10 iron
