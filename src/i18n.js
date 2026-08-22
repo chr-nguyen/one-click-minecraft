@@ -1,17 +1,12 @@
 import { IntlMessageFormat } from 'intl-messageformat';
-import { MESSAGES } from './locales.js';
+import en from './locales/en.json'; // bundled: default locale + fallback
 
 // ─────────────────────────────────────────────────────────────────────────────
-// i18n — ICU MessageFormat, RTL, and per-script fonts.
-//
-// Locales are drop-in: add an entry to LOCALES + a block in locales.js.
-// Missing keys fall back to English, so partial translations still run.
-// Press Start 2P only covers Latin-1, so non-Latin (and heavy-diacritic)
-// locales switch to a readable system font via `pixel: false`.
+// i18n — ICU MessageFormat with per-locale JSON catalogs, lazy-loaded on demand.
+// English is bundled (default + fallback for any missing key). Other locales are
+// code-split and fetched only when selected. RTL + per-script fonts via <html>.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// `script` selects the pixel font (see fonts.css). Darija is written in Latin
-// (Arabizi/French-style), so it's LTR + Latin.
 export const LOCALES = [
   { code: 'en',    name: 'English',              rtl: false, script: 'latin'    },
   { code: 'es',    name: 'Español',              rtl: false, script: 'latin'    },
@@ -33,42 +28,55 @@ export const LOCALES = [
 const BY_CODE = new Map(LOCALES.map((l) => [l.code, l]));
 const DEFAULT = 'en';
 
-let current = DEFAULT;
-const cache = new Map(); // `${locale}:${key}` → IntlMessageFormat
+// Vite code-splits each JSON into its own lazy chunk.
+const loaders = import.meta.glob('./locales/*.json');
 
-function pickInitial() {
-  // English by default; the player picks another language from the menu. We do
-  // NOT auto-match the browser locale — only honor an explicit prior choice.
-  const saved = localStorage.getItem('justdig.lang');
-  return saved && BY_CODE.has(saved) ? saved : DEFAULT;
+let current = DEFAULT;
+const catalogs = { en };          // loaded catalogs by code
+const cache = new Map();          // `${locale}:${key}` → IntlMessageFormat
+
+export const getLocale = () => current;
+export const localeMeta = (code = current) => BY_CODE.get(code) || BY_CODE.get(DEFAULT);
+
+async function loadCatalog(code) {
+  if (catalogs[code]) return;
+  const loader = loaders[`./locales/${code}.json`];
+  if (!loader) return; // unknown → English fallback
+  const mod = await loader();
+  catalogs[code] = mod.default || mod;
 }
 
-export function getLocale() { return current; }
-export function localeMeta(code = current) { return BY_CODE.get(code) || BY_CODE.get(DEFAULT); }
-
-export function setLocale(code) {
+export async function setLocale(code) {
   if (!BY_CODE.has(code)) code = DEFAULT;
+  await loadCatalog(code);
   current = code;
   localStorage.setItem('justdig.lang', code);
   const meta = localeMeta(code);
   const root = document.documentElement;
   root.lang = code;
   root.dir = meta.rtl ? 'rtl' : 'ltr';
-  root.setAttribute('data-script', meta.script); // CSS picks the font per script
+  root.setAttribute('data-script', meta.script);
 }
 
 // Translate `key` with optional ICU `values`. Falls back to English, then key.
 export function t(key, values) {
-  const msg = (MESSAGES[current] && MESSAGES[current][key]) ?? MESSAGES[DEFAULT][key];
+  const cat = catalogs[current] || catalogs[DEFAULT];
+  const msg = (cat && cat[key]) ?? catalogs[DEFAULT][key];
   if (msg == null) return key;
   const ck = current + ':' + key;
   let f = cache.get(ck);
   if (!f) {
     try { f = new IntlMessageFormat(msg, current); }
-    catch { f = new IntlMessageFormat(MESSAGES[DEFAULT][key] || key, DEFAULT); }
+    catch { f = new IntlMessageFormat(catalogs[DEFAULT][key] || key, DEFAULT); }
     cache.set(ck, f);
   }
   try { return f.format(values); } catch { return msg; }
 }
 
-export function initI18n() { setLocale(pickInitial()); }
+function pickInitial() {
+  // English by default; honor only an explicit prior choice (no browser match).
+  const saved = localStorage.getItem('justdig.lang');
+  return saved && BY_CODE.has(saved) ? saved : DEFAULT;
+}
+
+export async function initI18n() { await setLocale(pickInitial()); }

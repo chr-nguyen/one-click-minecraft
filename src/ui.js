@@ -132,8 +132,8 @@ export class UI {
   _wireLang(rerender) {
     const sel = $('langSel');
     if (!sel) return;
-    sel.onchange = (e) => {
-      setLocale(e.target.value);
+    sel.onchange = async (e) => {
+      await setLocale(e.target.value); // lazy-loads the locale's JSON catalog
       this.applyStaticText();
       rerender();
     };
