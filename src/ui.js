@@ -43,12 +43,15 @@ export class UI {
   // items: [{name, have, need?}] pre-ordered by the caller. `label` is localized.
   setProgress(label, items) {
     this.progLabel.textContent = label;
-    this.progItems.innerHTML = items.map(({ name, have, need }) => {
+    this.progItems.innerHTML = items.map(({ icon, name, have, need }) => {
+      const ic = `<img class="prog-ic" src="${icon}" alt="${name}">`;
+      const nm = `<span class="prog-name">${name}</span>`;
       if (need != null) {
-        const done = have >= need ? ' done' : '';
-        return `<span class="prog-item${done}">${name} ${Math.min(have, need)}/${need}</span>`;
+        const cls = have >= need ? ' done' : ' need'; // highlight the next-shovel targets
+        return `<span class="prog-item${cls}" title="${name}">${ic}${nm}<b>${Math.min(have, need)}/${need}</b></span>`;
       }
-      return `<span class="prog-item">${name} ${have}</span>`;
+      const zero = have === 0 ? ' zero' : '';
+      return `<span class="prog-item${zero}" title="${name}">${ic}${nm}<b>${have}</b></span>`;
     }).join('');
   }
 
@@ -83,8 +86,25 @@ export class UI {
     if (ab) ab.onclick = () => this.showAccessibility();
   }
 
+  // Pause menu (mid-run): resume, restart, language, accessibility.
+  showPause(onResume, onRestart) {
+    this.overlay.classList.remove('hidden');
+    this.overlayInner.innerHTML = `
+      <h1 class="sub">${t('paused')}</h1>
+      <button id="resumeBtn">${t('resume')}</button>
+      ${this._languagePicker()}
+      <button id="restartBtn" class="linkbtn">${t('restart')}</button>
+      ${isNativePlatform() ? '' : `<button id="a11yBtn" class="linkbtn">${t('a11yOpen')}</button>`}`;
+    $('resumeBtn').onclick = () => onResume && onResume();
+    $('restartBtn').onclick = () => onRestart && onRestart();
+    const ab = $('a11yBtn');
+    if (ab) ab.onclick = () => this.showAccessibility(() => this.showPause(onResume, onRestart));
+    this._wireLang(() => this.showPause(onResume, onRestart));
+  }
+
   // Web-only accessibility settings (iOS follows system settings automatically).
-  showAccessibility() {
+  // `onBack` returns to whichever screen opened it (start or pause).
+  showAccessibility(onBack) {
     const a = getA11y();
     const sizeBtn = (val, key) =>
       `<button class="chip${a.textScale === val ? ' on' : ''}" data-scale="${val}">${t(key)}</button>`;
@@ -104,7 +124,7 @@ export class UI {
     this.overlayInner.querySelectorAll('[data-scale]').forEach((el) => {
       el.onclick = () => { setA11y({ textScale: Number(el.dataset.scale) }); this.showAccessibility(); };
     });
-    $('a11yBack').onclick = () => this.showStart();
+    $('a11yBack').onclick = () => (onBack ? onBack() : this.showStart());
   }
 
   showGameOver(score, best, toolReached, onRestart) {
