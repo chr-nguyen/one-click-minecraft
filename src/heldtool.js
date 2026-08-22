@@ -68,25 +68,25 @@ function buildDrill() {
 
 const BUILDERS = { hand: buildHand, shovel: buildShovel, pickaxe: buildPickaxe, drill: buildDrill };
 
-// Resting transform in camera space: bottom-right, tilted so the head points
-// up-forward toward the block ahead.
-const BASE_POS = new THREE.Vector3(1.25, -1.35, -3.1);
+// Resting rotation in camera space, tilted so the head points up-forward toward
+// the block. Position + scale are derived from the frustum each frame so the
+// tool stays in the bottom-right corner on any aspect ratio (phone or desktop).
 const BASE_ROT = new THREE.Euler(0.45, -0.55, 0.4);
-const BASE_SCALE = 0.72;
+const BASE_SCALE = 0.78;
+const DEPTH = 3.1;      // how far in front of the camera the tool sits
 const SWING_DUR = 0.26;
 
 export class HeldTool {
   constructor(camera) {
     this.camera = camera;
     this.root = new THREE.Group();
-    this.root.position.copy(BASE_POS);
     this.root.rotation.copy(BASE_ROT);
-    this.root.scale.setScalar(BASE_SCALE);
     camera.add(this.root);
     this.model = null;
     this.swingT = 0;
     this.time = 0;
     this.setTool('hand');
+    this.update(0);
   }
 
   setTool(toolId) {
@@ -100,7 +100,16 @@ export class HeldTool {
 
   update(dt) {
     this.time += dt;
-    // idle bob
+    // Frustum extents at the tool's depth → anchor to the bottom-right corner
+    // and shrink on narrow (portrait) screens so it never clips off-screen.
+    const fovV = THREE.MathUtils.degToRad(this.camera.fov);
+    const halfH = DEPTH * Math.tan(fovV / 2);
+    const halfW = halfH * this.camera.aspect;
+    const scale = BASE_SCALE * Math.min(1, halfW / 1.9);
+    this.root.scale.setScalar(scale);
+    const baseX = halfW * 0.78;
+    const baseY = -halfH * 0.84;
+
     const bob = Math.sin(this.time * 2.2) * 0.03;
     // swing arc: a quick forward/down jab that eases back
     let swingX = 0, swingZ = 0, thrust = 0;
@@ -112,7 +121,7 @@ export class HeldTool {
       swingZ = arc * 0.35;
       thrust = arc * 0.5;    // push toward the block
     }
-    this.root.position.set(BASE_POS.x, BASE_POS.y + bob, BASE_POS.z - thrust);
+    this.root.position.set(baseX, baseY + bob, -DEPTH - thrust);
     this.root.rotation.set(BASE_ROT.x + swingX, BASE_ROT.y, BASE_ROT.z + swingZ);
   }
 }

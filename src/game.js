@@ -76,6 +76,20 @@ export class Game {
     this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this._fitCamera();
+  }
+
+  // Pull the camera to whatever distance fits the block on this aspect ratio,
+  // using the more-constraining of the vertical/horizontal FOV. Keeps the block
+  // framed the same on a wide desktop and a tall phone.
+  _fitCamera() {
+    const R = 6.2; // block bounding-sphere radius + margin (block is 6 wide)
+    const fovV = THREE.MathUtils.degToRad(this.camera.fov);
+    const fovH = 2 * Math.atan(Math.tan(fovV / 2) * this.camera.aspect);
+    const dist = Math.max(R / Math.sin(fovV / 2), R / Math.sin(fovH / 2));
+    this.camBase.set(0, dist * 0.14, dist);
+    this.camera.position.copy(this.camBase);
+    this.camera.lookAt(0, 0, 0);
   }
 
   _bindInput() {
