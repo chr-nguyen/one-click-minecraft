@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { Cube } from './cube.js';
 import { Particles, Shake } from './juice.js';
 import { particleColor, getMaterial } from './materials.js';
-import { TOOLS, toolPower } from './tools.js';
+import { TOOLS, getTool, bestTool } from './tools.js';
+import { pickFunItem } from './objects.js';
 import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { HeldTool } from './heldtool.js';
 import { UI } from './ui.js';
@@ -23,13 +24,17 @@ export class Game {
     this.state = 'idle'; // idle | playing | over
     this.timeLeft = ROUND_SECONDS;
     this.score = 0;
-    this.tool = TOOLS.hand;      // current auto-tool power source (upgrades on loot)
-    this.best = Number(localStorage.getItem('voxeldig.best') || 0);
+    // Persistent, automatic progression: cumulative material totals and the
+    // best shovel they've earned carry across runs (localStorage).
+    this.totals = this._loadTotals();
+    this.tool = getTool(localStorage.getItem('justdig.tool') || 'hand');
+    this.best = Number(localStorage.getItem('justdig.best') || 0);
     this.cubeSeed = 1;
     this.cube = null;
     this._lastClock = ROUND_SECONDS;
 
     this.ui.setBest(this.best);
+    this.ui.setTool(this.tool);
     this.ui.showStart(() => this.start());
 
     this._bindInput();
@@ -107,10 +112,19 @@ export class Game {
     this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
   }
 
-  // Auto-best-tool: the current tool's effective power against this material's
-  // family. Right tool = full power; wrong tool = reduced. Durability sets pace.
-  _powerFor(matId) {
-    return toolPower(this.tool, getMaterial(matId).family);
+  // Current shovel's dig power. Durability sets the pace; stronger shovels
+  // (earned automatically) dig everything faster.
+  _powerFor() {
+    return this.tool.power;
+  }
+
+  _loadTotals() {
+    try { return JSON.parse(localStorage.getItem('justdig.mats') || '{}'); }
+    catch { return {}; }
+  }
+  _persist() {
+    localStorage.setItem('justdig.mats', JSON.stringify(this.totals));
+    localStorage.setItem('justdig.tool', this.tool.id);
   }
 
   _dig() {
@@ -119,8 +133,7 @@ export class Game {
     const hits = this.raycaster.intersectObjects(this.cube.meshes, false);
     if (!hits.length) return;
     if (!this.cube.resolveHit()) return;
-    const power = this._powerFor(this.cube.matId);
-    const evt = this.cube.dig(hits[0].point, power);
+    const evt = this.cube.dig(hits[0].point, this._powerFor());
     if (!evt) return;
     this._react(evt);
   }
@@ -154,23 +167,44 @@ export class Game {
     }
   }
 
-  _extract({ loot, rarity }) {
-    this.score += rarity.score;
+  _extract({ matId }) {
+    const md = getMaterial(matId);
+    // collect the material (persists), +1 to the block count
+    this.totals[matId] = (this.totals[matId] || 0) + 1;
+    this.score += 1;
     this.ui.setScore(this.score);
-    this.ui.flourish(loot, rarity);
-    sfx.reveal(rarity.score);
+    sfx.reveal(3);
     this.shake.add(0.35, 0.4);
-    // burst of loot-colored sparkle at cube center
     const center = this.cube._objectCenter().applyMatrix4(this.cube.group.matrixWorld);
-    this.particles.burst(center.x, center.y, center.z, new THREE.Color(rarity.color), 40, 7);
+    const matHex = '#' + particleColor(matId).getHexString();
+    this.particles.burst(center.x, center.y, center.z, particleColor(matId), 40, 7, 1.4);
 
-    // Tool upgrade if this loot is a tool and stronger than current.
-    if (loot.tool && TOOLS[loot.tool] && TOOLS[loot.tool].power > this.tool.power) {
-      this.tool = TOOLS[loot.tool];
-      this.ui.setTool(this.tool, true);
-      this.held.setTool(this.tool.id);
+    // Gold Alloy Shovel: chance to unearth a fun bonus item.
+    let funItem = null;
+    if (this.tool.funItems && Math.random() < 0.25) {
+      funItem = pickFunItem();
+      this.score += funItem.score;
+      this.ui.setScore(this.score);
+      sfx.reveal(funItem.score);
     }
-    // brief beat, then next cube
+
+    // Automatic shovel upgrade when totals meet the next recipe.
+    const best = bestTool(this.totals);
+    const upgraded = best.tier > this.tool.tier;
+    if (upgraded) {
+      this.tool = best;
+      this.ui.setTool(best, true);
+      this.held.setTool(best.id);
+      this.shake.add(0.5, 0.5);
+      sfx.reveal(20);
+    }
+    this._persist();
+
+    // Flourish priority: upgrade > fun item > material collected.
+    if (upgraded) this.ui.flourish(`NEW! ${best.name}`, '#ffd54a');
+    else if (funItem) this.ui.flourish(`${funItem.name}  +${funItem.score}`, funItem.color);
+    else this.ui.flourish(`+1 ${md.name}`, matHex);
+
     setTimeout(() => this._nextCube(), 550);
   }
 
@@ -185,15 +219,16 @@ export class Game {
     this.state = 'playing';
     this.timeLeft = ROUND_SECONDS;
     this.score = 0;
-    this.tool = TOOLS.hand;
+    // NOTE: material totals and the earned shovel persist across runs — only
+    // the per-run score and clock reset.
     this._lastClock = ROUND_SECONDS;
     this.ui.setScore(0);
     this.ui.setTool(this.tool);
-    this.held.setTool('hand');
+    this.held.setTool(this.tool.id);
     this.ui.hideOverlay();
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
-    this.cubeSeed = 1;
+    this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
     this.cube = new Cube(this.scene, { seed: this.cubeSeed });
   }
 
@@ -202,7 +237,7 @@ export class Game {
     sfx.end();
     if (this.score > this.best) {
       this.best = this.score;
-      localStorage.setItem('voxeldig.best', String(this.best));
+      localStorage.setItem('justdig.best', String(this.best));
       this.ui.setBest(this.best);
     }
     this.ui.showGameOver(this.score, this.best, () => this.start());

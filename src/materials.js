@@ -138,6 +138,17 @@ export function baseColor(id) {
   return new THREE.Color(r / 255, g / 255, b / 255);
 }
 
+// The glowing nugget of material that pops out when a block shatters — a
+// brighter, punchier version of the block's own color.
+export function nuggetMaterial(id) {
+  const d = getMaterial(id);
+  const [r, g, b] = hslToRgb(d.hsl[0], Math.min(1, d.hsl[1] + 0.12), Math.min(0.85, d.hsl[2] + 0.18));
+  const col = new THREE.Color(r / 255, g / 255, b / 255);
+  return new THREE.MeshStandardMaterial({
+    color: col, emissive: col.clone().multiplyScalar(0.35), roughness: 0.3, metalness: 0.4,
+  });
+}
+
 // Voxel color — a single flat color per material with only a SMOOTH,
 // low-frequency shade gradient across the cube. Adjacent voxels differ only
 // slightly, so the intact surface reads as one solid block, not a grid of

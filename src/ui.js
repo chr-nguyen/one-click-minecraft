@@ -33,9 +33,9 @@ export class UI {
     }
   }
 
-  flourish(loot, rarity) {
-    this.flourishEl.textContent = `${rarity.name} · ${loot.name}  +${rarity.score}`;
-    this.flourishEl.style.color = `#${rarity.color.toString(16).padStart(6, '0')}`;
+  flourish(text, color) {
+    this.flourishEl.textContent = text;
+    this.flourishEl.style.color = color;
     this.flourishEl.classList.remove('show');
     void this.flourishEl.offsetWidth;
     this.flourishEl.classList.add('show');
@@ -45,9 +45,9 @@ export class UI {
     this.overlay.classList.remove('hidden');
     this.overlayInner.innerHTML = `
       <h1>JUSTDIG</h1>
-      <p>Click to chip. Clear the cube, grab the loot inside.<br>
-         Better tools appear as loot — grab them to dig faster.<br>
-         <b>60 seconds. How many cubes can you crack?</b></p>
+      <p>Tap to smash blocks and collect their materials.<br>
+         Your shovel upgrades itself as you dig — automatically.<br>
+         <b>60 seconds. How many blocks can you crack?</b></p>
       <button id="startBtn">START DIGGING</button>
       <p class="credit">© 2026 Charles Nguyen &amp; Aviah Morag</p>`;
     $('startBtn').onclick = onStart;

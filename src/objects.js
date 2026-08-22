@@ -59,6 +59,16 @@ export const LOOT_DEFS = [
   { id: 'crown_gem',     name: 'Crown Jewel',     shape: 'gem',      rarity: 'legendary', weight: 2 },
 ];
 
+// Bonus items the Gold Alloy Shovel can unearth (docs/game-progression.md).
+export const FUN_ITEMS = [
+  { name: 'Old Boot',      score: 5,  color: '#6b4a2b' },
+  { name: 'Ham Sandwich',  score: 8,  color: '#e0a86a' },
+  { name: 'Band T-Shirt',  score: 10, color: '#8a5cff' },
+  { name: 'T-Rex Skull',   score: 15, color: '#e8e2c8' },
+  { name: 'Gold Loot',     score: 25, color: '#ffcf33' },
+];
+export const pickFunItem = () => FUN_ITEMS[Math.floor(Math.random() * FUN_ITEMS.length)];
+
 const lootById = new Map(LOOT_DEFS.map((l) => [l.id, l]));
 export const getLoot = (id) => lootById.get(id);
 export const getShape = (name) => B[name];

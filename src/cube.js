@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { MATERIAL_DEFS, getMaterial, soloMaterial } from './materials.js';
-import { LOOT_DEFS, getShape, weightedPick, lootMaterial, RARITY } from './objects.js';
+import { MATERIAL_DEFS, getMaterial, soloMaterial, nuggetMaterial } from './materials.js';
+import { getShape, weightedPick } from './objects.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // A cube is ONE solid block (a single big voxel). You chip at it: it cracks and
@@ -78,10 +78,9 @@ export class Cube {
     this.revealT = 0;
     this.jig = null;
 
-    // pick material + loot
+    // pick the block's material (luck). It contains a nugget of itself.
     this.matDef = weightedPick(MATERIAL_DEFS.map((m) => ({ ...m, weight: m.spawnWeight })), this.rng);
     this.matId = this.matDef.id;
-    this.loot = weightedPick(LOOT_DEFS, this.rng);
 
     this.maxHealth = (this.matDef.durability + 1) * 2;
     this.health = this.maxHealth;
@@ -112,8 +111,8 @@ export class Cube {
   }
 
   _buildObject() {
-    const shape = getShape(this.loot.shape);
-    const mat = lootMaterial(this.loot.rarity);
+    const shape = getShape('gem'); // a chunky nugget of the block's material
+    const mat = nuggetMaterial(this.matId);
     this.objMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), mat, shape.length);
     const c = (OBJ_GRID - 1) / 2;
     const m = new THREE.Matrix4();
@@ -158,7 +157,7 @@ export class Cube {
     this.revealT = 0;
     return {
       type: 'break', pos, matId: this.matId, hardness: def.durability,
-      extracted: { loot: this.loot, rarity: RARITY[this.loot.rarity], pos: { x: 0, y: 0, z: 0 } },
+      extracted: { matId: this.matId, pos: { x: 0, y: 0, z: 0 } },
     };
   }
 

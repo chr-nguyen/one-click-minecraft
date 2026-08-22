@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getTool } from './tools.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // First-person HELD TOOL — a real 3D model parented to the camera, angled toward
@@ -28,45 +29,17 @@ function buildHand() {
   return g;
 }
 
-function buildShovel() {
+function buildShovel(color) {
+  const blade = new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.55 });
   const g = new THREE.Group();
   g.add(box(0.12, 1.5, 0.12, WOOD, 0, -0.35, 0));      // handle
   g.add(box(0.34, 0.16, 0.16, WOOD, 0, 0.45, 0));       // T-grip base
   // blade: tapered scoop from a few plates
-  g.add(box(0.5, 0.5, 0.06, IRON, 0, 0.8, 0));          // blade
-  g.add(box(0.5, 0.12, 0.14, IRON, 0, 0.56, 0.04, 0.4, 0, 0)); // shoulder
-  g.add(box(0.14, 0.14, 0.14, IRON, 0, 1.06, 0, 0, 0, 0.78));  // tip point
+  g.add(box(0.5, 0.5, 0.06, blade, 0, 0.8, 0));          // blade
+  g.add(box(0.5, 0.12, 0.14, blade, 0, 0.56, 0.04, 0.4, 0, 0)); // shoulder
+  g.add(box(0.14, 0.14, 0.14, blade, 0, 1.06, 0, 0, 0, 0.78));  // tip point
   return g;
 }
-
-function buildPickaxe() {
-  const g = new THREE.Group();
-  g.add(box(0.12, 1.7, 0.12, WOOD, 0, -0.35, 0));      // handle
-  // curved double-pick head from angled segments
-  g.add(box(0.4, 0.16, 0.2, IRON, 0, 0.68, 0));         // center
-  g.add(box(0.34, 0.15, 0.19, IRON, 0.34, 0.64, 0, 0, 0, 0.35));
-  g.add(box(0.34, 0.15, 0.19, IRON, -0.34, 0.64, 0, 0, 0, -0.35));
-  g.add(box(0.24, 0.14, 0.18, IRON, 0.62, 0.52, 0, 0, 0, 0.8));  // right point
-  g.add(box(0.24, 0.14, 0.18, IRON, -0.62, 0.52, 0, 0, 0, -0.8)); // left point
-  return g;
-}
-
-function buildDrill() {
-  const g = new THREE.Group();
-  g.add(box(0.42, 0.7, 0.44, DARK, 0, -0.25, 0));      // motor body
-  g.add(box(0.26, 0.6, 0.26, DARK, 0, 0.35, 0));        // chuck housing
-  // helical bit: stacked twisted plates + cone tip
-  for (let i = 0; i < 5; i++) {
-    g.add(box(0.26, 0.1, 0.08, IRON, 0, 0.68 + i * 0.11, 0, 0, i * 0.6, 0));
-  }
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.4, 8), IRON);
-  tip.position.set(0, 1.35, 0);
-  g.add(tip);
-  g.add(box(0.18, 0.5, 0.18, DARK, 0, -0.72, 0.2, 0.55, 0, 0)); // handle grip
-  return g;
-}
-
-const BUILDERS = { hand: buildHand, shovel: buildShovel, pickaxe: buildPickaxe, drill: buildDrill };
 
 // Resting rotation in camera space, tilted so the head points up-forward toward
 // the block. Position + scale are derived from the frustum each frame so the
@@ -90,9 +63,9 @@ export class HeldTool {
   }
 
   setTool(toolId) {
-    if (this.model) { this.root.remove(this.model); }
-    const build = BUILDERS[toolId] || BUILDERS.hand;
-    this.model = build();
+    if (this.model) this.root.remove(this.model);
+    const t = getTool(toolId);
+    this.model = toolId === 'hand' ? buildHand() : buildShovel(t.color || '#cccccc');
     this.root.add(this.model);
   }
 
