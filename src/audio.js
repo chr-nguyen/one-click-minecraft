@@ -76,9 +76,12 @@ export function digSound(matDef) {
 export function breakSound(matDef) {
   const f = SOUND_FAMILIES[matDef.family] || SOUND_FAMILIES.rock;
   const p = matDef.dyn.pitch;
-  burst({ dur: 0.13, freq: f.breakF * p, q: f.breakQ, gain: 0.5 });
-  tone({ freq: f.thud * p, dur: 0.11, type: 'triangle', gain: 0.18 });
-  if (f.ring) tone({ freq: f.breakF * p * 2, dur: 0.25, type: 'sine', gain: 0.12, slideTo: f.breakF * p });
+  // A satisfying block-break: a punchy low thump + a gritty crumble (two quick
+  // noise bursts) + a short pitch-down tail. Reads as "the block gives way".
+  tone({ freq: 140 * p, dur: 0.16, type: 'sine', gain: 0.4, slideTo: 60 * p });        // body thump
+  burst({ dur: 0.11, freq: f.breakF * p, q: f.breakQ, gain: 0.5 });                     // crack
+  setTimeout(() => burst({ dur: 0.16, freq: f.breakF * p * 0.7, q: 0.5, gain: 0.32 }), 45); // crumble tail
+  if (f.ring) tone({ freq: f.breakF * p * 2, dur: 0.22, type: 'sine', gain: 0.1, slideTo: f.breakF * p });
 }
 
 // ── SFX vocabulary ───────────────────────────────────────────────────────────

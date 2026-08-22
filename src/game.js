@@ -10,6 +10,7 @@ import { HeldTool } from './heldtool.js';
 import { Background } from './background.js';
 import { t } from './i18n.js';
 import { effectiveReduceMotion } from './a11y.js';
+import { impact } from './haptics.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
@@ -193,6 +194,7 @@ export class Game {
         this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), 6, 3, 0.7);
         this.shake.add(0.06 + evt.hardness * 0.01, 0.12);
         digSound(def);
+        impact('Light'); // haptic tap per chip
         break;
       }
       case 'break': {
@@ -202,6 +204,7 @@ export class Game {
         this.particles.burst(c.x, c.y, c.z, particleColor(evt.matId), def.dyn.chips * 4, def.dyn.chipSpeed * 1.9, 2.6);
         this.shake.add(0.42, 0.35);
         breakSound(def);
+        impact('Heavy'); // strong haptic on block shatter
         if (evt.extracted) this._extract(evt.extracted);
         break;
       }
