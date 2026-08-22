@@ -69,12 +69,18 @@ function proceduralTexture(def) {
   c.width = c.height = TEX_SIZE;
   const ctx = c.getContext('2d');
   const img = ctx.createImageData(TEX_SIZE, TEX_SIZE);
-  // Grayscale grain only — the actual hue rides on per-instance color so we
-  // never double-apply the palette (which would darken everything to mud).
+  // Minecraft-style block face: a grid of multi-shaded squares (grayscale;
+  // the material color tints it in soloMaterial). Not real cubes — just a
+  // texture/decal on the one solid block. Grainier materials = more contrast.
+  const CELLS = 16;
+  const cellPx = TEX_SIZE / CELLS;
+  const amp = 0.10 + def.grain * 0.14;
   for (let y = 0; y < TEX_SIZE; y++) {
     for (let x = 0; x < TEX_SIZE; x++) {
-      const n = (hash2(x, y) * 0.6 + hash2(x >> 1, y >> 1) * 0.4 - 0.5);
-      const v = Math.max(0, Math.min(1, 1 - Math.abs(n) * def.grain * 0.35)) * 255;
+      const cx = Math.floor(x / cellPx), cy = Math.floor(y / cellPx);
+      let shade = 1 + (hash2(cx * 7 + 1, cy * 13 + 3) - 0.5) * 2 * amp;
+      if (hash2(cx * 3 + 5, cy * 9 + 2) > 0.9) shade *= 0.82; // occasional dark fleck
+      const v = Math.max(0.45, Math.min(1.25, shade)) * 255;
       const i = (y * TEX_SIZE + x) * 4;
       img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
     }

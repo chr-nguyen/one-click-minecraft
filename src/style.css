@@ -1,9 +1,17 @@
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('./fonts/PressStart2P-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
 :root {
   --bg: #0e1220;
   --ink: #eef2ff;
   --dim: #8b93ad;
   --accent: #ffb020;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pixel: 'Press Start 2P', ui-monospace, "Courier New", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--sans);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,9 +30,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .stat { display: flex; flex-direction: column; }
 .stat.center { flex: 1; align-items: center; }
 .stat.right { align-items: flex-end; }
-.stat label { font-size: 11px; letter-spacing: 0.14em; color: var(--dim); font-weight: 700; }
-.stat span { font-size: 28px; font-weight: 800; line-height: 1.1; }
-#score { font-size: 40px; color: var(--accent); }
+.stat label { font-family: var(--pixel); font-size: 9px; letter-spacing: 0.06em; color: var(--dim); }
+.stat span { font-family: var(--pixel); font-size: 20px; line-height: 1.2; }
+#score { font-size: 30px; color: var(--accent); }
 #time.danger { color: #ff4d4d; animation: pulse 0.5s ease-in-out infinite; }
 
 .bump { animation: bump 0.18s ease-out; }
@@ -34,7 +42,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 /* ── Extraction flourish ─────────────────────────────────────────────────── */
 #flourish {
   position: fixed; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(0.7);
-  font-size: clamp(22px, 5vw, 44px); font-weight: 900; letter-spacing: 0.02em;
+  font-family: var(--pixel); font-size: clamp(14px, 3vw, 26px); letter-spacing: 0.02em;
   text-shadow: 0 2px 20px rgba(0,0,0,0.6); opacity: 0; pointer-events: none;
   white-space: nowrap;
 }
@@ -52,9 +60,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   pointer-events: none; user-select: none;
 }
 #toolName {
-  font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: var(--pixel); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--ink); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-  padding: 6px 16px; border-radius: 999px;
+  padding: 8px 16px; border-radius: 999px;
   background: rgba(20, 26, 42, 0.55); border: 1px solid rgba(255, 255, 255, 0.12);
 }
 #toolName.upgraded { animation: toolPop 0.6s cubic-bezier(0.2, 0.9, 0.2, 1); }
@@ -73,14 +81,15 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 #overlay.hidden { opacity: 0; pointer-events: none; }
 #overlay-inner { text-align: center; max-width: 480px; padding: 24px; }
 #overlay-inner h1 {
-  font-size: clamp(40px, 9vw, 72px); font-weight: 900; letter-spacing: 0.04em;
+  font-family: var(--pixel); font-size: clamp(28px, 6.5vw, 54px); letter-spacing: 0.02em;
+  line-height: 1.15;
   background: linear-gradient(180deg, #fff, #9fb4ff); -webkit-background-clip: text;
-  background-clip: text; color: transparent; margin-bottom: 16px;
+  background-clip: text; color: transparent; margin-bottom: 20px;
 }
-#overlay-inner p { color: var(--dim); font-size: 16px; line-height: 1.6; margin-bottom: 24px; }
-#overlay-inner .bigscore { font-size: 80px; font-weight: 900; color: var(--accent); margin: 8px 0; }
+#overlay-inner p { color: var(--dim); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
+#overlay-inner .bigscore { font-family: var(--pixel); font-size: 56px; color: var(--accent); margin: 12px 0; }
 #overlay-inner button {
-  font: inherit; font-weight: 800; letter-spacing: 0.06em; font-size: 18px;
+  font-family: var(--pixel); letter-spacing: 0.04em; font-size: 14px;
   color: #0e1220; background: var(--accent); border: none; border-radius: 12px;
   padding: 16px 32px; cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s ease;
   box-shadow: 0 6px 24px rgba(255,176,32,0.35);
