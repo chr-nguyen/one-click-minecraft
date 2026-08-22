@@ -64,8 +64,9 @@ function crackTextures() {
 }
 
 export class Cube {
-  constructor(scene, { seed = 1 } = {}) {
+  constructor(scene, { seed = 1, spawnTier = 0 } = {}) {
     this.rng = rng32(seed);
+    this.spawnTier = spawnTier; // biases which materials appear toward your level
     this.scene = scene;
     this.group = new THREE.Group();
     scene.add(this.group);
@@ -78,11 +79,19 @@ export class Cube {
     this.revealT = 0;
     this.jig = null;
 
-    // pick the block's material (luck). It contains a nugget of itself.
-    this.matDef = weightedPick(MATERIAL_DEFS.map((m) => ({ ...m, weight: m.spawnWeight })), this.rng);
+    // pick the block's material (luck), biased toward the player's level so the
+    // materials the next shovel needs actually turn up. Center a couple tiers
+    // above the current tool; falls off with distance.
+    const center = this.spawnTier + 2;
+    this.matDef = weightedPick(
+      MATERIAL_DEFS.map((m) => ({ ...m, weight: m.spawnWeight * Math.exp(-((m.tier - center) ** 2) / 8) })),
+      this.rng,
+    );
     this.matId = this.matDef.id;
 
-    this.maxHealth = (this.matDef.durability + 1) * 2;
+    // A few taps per block (hypercasual). Harder materials take more; better
+    // shovels cut through faster.
+    this.maxHealth = this.matDef.durability + 1;
     this.health = this.maxHealth;
 
     this._build();

@@ -169,8 +169,9 @@ export class Game {
 
   _extract({ matId }) {
     const md = getMaterial(matId);
-    // collect the material (persists), +1 to the block count
-    this.totals[matId] = (this.totals[matId] || 0) + 1;
+    // Each block yields several units so recipes are reachable within a run.
+    const yield_ = 5;
+    this.totals[matId] = (this.totals[matId] || 0) + yield_;
     this.score += 1;
     this.ui.setScore(this.score);
     sfx.reveal(3);
@@ -203,7 +204,7 @@ export class Game {
     // Flourish priority: upgrade > fun item > material collected.
     if (upgraded) this.ui.flourish(`NEW! ${best.name}`, '#ffd54a');
     else if (funItem) this.ui.flourish(`${funItem.name}  +${funItem.score}`, funItem.color);
-    else this.ui.flourish(`+1 ${md.name}`, matHex);
+    else this.ui.flourish(`+${yield_} ${md.name}`, matHex);
 
     setTimeout(() => this._nextCube(), 550);
   }
@@ -212,7 +213,7 @@ export class Game {
     if (this.state !== 'playing') return;
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
-    this.cube = new Cube(this.scene, { seed: this.cubeSeed });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier });
   }
 
   start() {
@@ -229,7 +230,7 @@ export class Game {
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
-    this.cube = new Cube(this.scene, { seed: this.cubeSeed });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed, spawnTier: this.tool.tier });
   }
 
   _end() {
