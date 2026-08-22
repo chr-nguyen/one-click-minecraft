@@ -2,8 +2,8 @@ import * as THREE from 'three';
 
 import handUrl from './assets/backgrounds/grassy-field.webp';
 import clayUrl from './assets/backgrounds/cliff-valley.webp';
-import stoneUrl from './assets/backgrounds/stone-cave.webp';
-import ironUrl from './assets/backgrounds/deep-cave.webp';
+import stoneUrl from './assets/backgrounds/stone-quarry.webp';
+import ironUrl from './assets/backgrounds/cave-overlook.webp';
 import steelUrl from './assets/backgrounds/steel-granite-depth.webp';
 import copperUrl from './assets/backgrounds/copper-cavern.webp';
 import bronzeUrl from './assets/backgrounds/bronze-depth.webp';
@@ -41,6 +41,8 @@ const fragmentShader = `
   uniform sampler2D uFrom;
   uniform sampler2D uTo;
   uniform float uMix;
+  uniform float uFromTier;
+  uniform float uToTier;
   uniform float uViewAspect;
   varying vec2 vUv;
 
@@ -68,14 +70,34 @@ const fragmentShader = `
     return color;
   }
 
+  vec3 gradeForTier(vec3 color, float tier) {
+    float depth = smoothstep(0.0, 1.0, clamp(tier / 7.0, 0.0, 1.0));
+    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+
+    // Keep every scene vivid while moving from warm daylight into a deeper,
+    // red-violet cast with stronger contrast.
+    float saturation = mix(1.18, 1.34, depth);
+    color = mix(vec3(luminance), color, saturation);
+    color *= mix(vec3(1.10, 1.06, 0.96), vec3(1.02, 0.82, 0.90), depth);
+
+    float contrast = mix(1.05, 1.18, depth);
+    color = (color - 0.5) * contrast + 0.5;
+    color *= mix(1.18, 0.92, depth);
+    return clamp(color, 0.0, 1.0);
+  }
+
   void main() {
     vec2 fromUv = coverUv(vUv + vec2(0.0, -0.06 * uMix));
     vec2 toUv = coverUv(vUv + vec2(0.0, 0.06 * (1.0 - uMix)));
-    vec4 color = mix(blurred(uFrom, fromUv), blurred(uTo, toUv), uMix);
+    vec3 fromColor = gradeForTier(blurred(uFrom, fromUv).rgb, uFromTier);
+    vec3 toColor = gradeForTier(blurred(uTo, toUv).rgb, uToTier);
+    vec3 color = mix(fromColor, toColor, uMix);
 
+    float tier = mix(uFromTier, uToTier, uMix);
+    float depth = smoothstep(0.0, 1.0, clamp(tier / 7.0, 0.0, 1.0));
     float edge = smoothstep(0.20, 0.72, distance(vUv, vec2(0.5)));
-    color.rgb *= 0.72 - edge * 0.25;
-    gl_FragColor = vec4(color.rgb, 1.0);
+    color *= mix(0.98, 0.88, depth) - edge * mix(0.08, 0.20, depth);
+    gl_FragColor = vec4(color, 1.0);
   }
 `;
 
@@ -93,6 +115,8 @@ function makeMaterial(texture) {
       uFrom: { value: texture },
       uTo: { value: texture },
       uMix: { value: 0 },
+      uFromTier: { value: 0 },
+      uToTier: { value: 0 },
       uViewAspect: { value: 1 },
     },
     vertexShader,
@@ -132,6 +156,8 @@ export class Background {
       this.material.uniforms.uFrom.value = this.textures[nextTier];
       this.material.uniforms.uTo.value = this.textures[nextTier];
       this.material.uniforms.uMix.value = 0;
+      this.material.uniforms.uFromTier.value = nextTier;
+      this.material.uniforms.uToTier.value = nextTier;
       return;
     }
     if (nextTier === this.currentTier && !this.transitioning) return;
@@ -143,6 +169,8 @@ export class Background {
     this.material.uniforms.uFrom.value = this.textures[this.currentTier];
     this.material.uniforms.uTo.value = this.textures[nextTier];
     this.material.uniforms.uMix.value = 0;
+    this.material.uniforms.uFromTier.value = this.currentTier;
+    this.material.uniforms.uToTier.value = nextTier;
   }
 
   resize() {
@@ -170,5 +198,7 @@ export class Background {
     this.material.uniforms.uFrom.value = this.textures[this.currentTier];
     this.material.uniforms.uTo.value = this.textures[this.currentTier];
     this.material.uniforms.uMix.value = 0;
+    this.material.uniforms.uFromTier.value = this.currentTier;
+    this.material.uniforms.uToTier.value = this.currentTier;
   }
 }
