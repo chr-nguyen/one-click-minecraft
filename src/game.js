@@ -7,7 +7,6 @@ import { initAudio, resumeAudio, sfx, digSound, breakSound } from './audio.js';
 import { UI } from './ui.js';
 
 const ROUND_SECONDS = 60;
-const CUBE_SIZE = 7;
 
 export class Game {
   constructor(canvas) {
@@ -101,11 +100,9 @@ export class Game {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hits = this.raycaster.intersectObjects(this.cube.meshes, false);
     if (!hits.length) return;
-    const id = this.cube.resolveHit(hits[0]);
-    if (id == null) return;
-    const cell = this.cube.cells[id];
-    const power = cell.kind === 1 ? this._powerFor(cell.matId) : 1;
-    const evt = this.cube.dig(id, power);
+    if (!this.cube.resolveHit()) return;
+    const power = this._powerFor(this.cube.matId);
+    const evt = this.cube.dig(hits[0].point, power);
     if (!evt) return;
     this._react(evt);
   }
@@ -121,15 +118,17 @@ export class Game {
         break;
       case 'damage': {
         const def = getMaterial(evt.matId);
-        this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), 5, 2.5);
+        this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), 6, 3, 0.7);
         this.shake.add(0.06 + evt.hardness * 0.01, 0.12);
         digSound(def);
         break;
       }
       case 'break': {
         const def = getMaterial(evt.matId);
-        this.particles.burst(wp.x, wp.y, wp.z, particleColor(evt.matId), def.dyn.chips, def.dyn.chipSpeed);
-        this.shake.add(0.14 + evt.hardness * 0.02, 0.22);
+        // whole block shatters into big chunks, from the block center
+        const c = this.cube.group.position; // ~origin
+        this.particles.burst(c.x, c.y, c.z, particleColor(evt.matId), def.dyn.chips * 4, def.dyn.chipSpeed * 1.9, 2.6);
+        this.shake.add(0.42, 0.35);
         breakSound(def);
         if (evt.extracted) this._extract(evt.extracted);
         break;
@@ -150,7 +149,7 @@ export class Game {
     // Tool upgrade if this loot is a tool and stronger than current.
     if (loot.tool && TOOLS[loot.tool] && TOOLS[loot.tool].power > this.tool.power) {
       this.tool = TOOLS[loot.tool];
-      this.ui.setTool(this.tool);
+      this.ui.setTool(this.tool, true);
     }
     // brief beat, then next cube
     setTimeout(() => this._nextCube(), 550);
@@ -160,7 +159,7 @@ export class Game {
     if (this.state !== 'playing') return;
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = (this.cubeSeed * 1103515245 + 12345) & 0x7fffffff;
-    this.cube = new Cube(this.scene, { size: CUBE_SIZE, voxel: 1, seed: this.cubeSeed });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed });
   }
 
   start() {
@@ -175,7 +174,7 @@ export class Game {
     sfx.start();
     if (this.cube) this.cube.dispose(this.scene);
     this.cubeSeed = 1;
-    this.cube = new Cube(this.scene, { size: CUBE_SIZE, voxel: 1, seed: this.cubeSeed });
+    this.cube = new Cube(this.scene, { seed: this.cubeSeed });
   }
 
   _end() {

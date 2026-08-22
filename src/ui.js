@@ -7,7 +7,9 @@ export class UI {
     this.time = $('time');
     this.score = $('score');
     this.best = $('best');
-    this.tool = $('tool');
+    this.toolIcon = $('toolIcon');
+    this.toolName = $('toolName');
+    this.toolSlot = $('toolSlot');
     this.overlay = $('overlay');
     this.overlayInner = $('overlay-inner');
     this.flourishEl = $('flourish');
@@ -24,7 +26,15 @@ export class UI {
     this.score.classList.add('bump');
   }
   setBest(b) { this.best.textContent = b; }
-  setTool(t) { this.tool.textContent = t.name; }
+  setTool(t, upgraded = false) {
+    this.toolIcon.textContent = t.icon || '✋';
+    this.toolName.textContent = t.name;
+    if (upgraded) {
+      this.toolSlot.classList.remove('upgraded');
+      void this.toolSlot.offsetWidth;
+      this.toolSlot.classList.add('upgraded');
+    }
+  }
 
   flourish(loot, rarity) {
     this.flourishEl.textContent = `${rarity.name} · ${loot.name}  +${rarity.score}`;

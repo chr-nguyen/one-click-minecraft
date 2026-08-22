@@ -39,7 +39,7 @@ export class Particles {
     this.mesh.setMatrixAt(i, this._m);
   }
 
-  burst(x, y, z, color, count = 10, speed = 4) {
+  burst(x, y, z, color, count = 10, speed = 4, sizeScale = 1) {
     for (let k = 0; k < count; k++) {
       const i = this.cursor;
       this.cursor = (this.cursor + 1) % this.n;
@@ -50,8 +50,8 @@ export class Particles {
       this.vel[i * 3] = Math.cos(a) * r;
       this.vel[i * 3 + 1] = up * speed + 2;
       this.vel[i * 3 + 2] = Math.sin(a) * r;
-      this.life[i] = 0.5 + Math.random() * 0.5;
-      this.scale[i] = this.size * (0.2 + Math.random() * 0.35);
+      this.life[i] = 0.5 + Math.random() * 0.6;
+      this.scale[i] = this.size * sizeScale * (0.2 + Math.random() * 0.35);
       this.mesh.setColorAt(i, color);
     }
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;

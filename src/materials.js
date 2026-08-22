@@ -106,6 +106,26 @@ export function threeMaterial(id) {
   return m;
 }
 
+// Material for a single solid cube (color lives on the mesh, not instanceColor).
+// Fresh instance per cube so per-cube damage-darkening never leaks across cubes.
+export function soloMaterial(id) {
+  const def = getMaterial(id);
+  const [r, g, b] = hslToRgb(...def.hsl);
+  const base = new THREE.Color(r / 255, g / 255, b / 255);
+  return new THREE.MeshStandardMaterial({
+    map: proceduralTexture(def),
+    color: base,
+    roughness: def.roughness,
+    metalness: def.metalness,
+    emissive: base.clone().multiplyScalar(def.emissive),
+  });
+}
+
+export function baseColor(id) {
+  const [r, g, b] = hslToRgb(...getMaterial(id).hsl);
+  return new THREE.Color(r / 255, g / 255, b / 255);
+}
+
 // Voxel color — a single flat color per material with only a SMOOTH,
 // low-frequency shade gradient across the cube. Adjacent voxels differ only
 // slightly, so the intact surface reads as one solid block, not a grid of

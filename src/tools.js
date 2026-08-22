@@ -20,10 +20,10 @@
 
 /** @type {Record<string, ToolDef>} */
 export const TOOLS = {
-  hand:    { id: 'hand',    name: 'Hand',    power: 1.0, suits: [],                 tier: 0, pitch: 1.0 },
-  shovel:  { id: 'shovel',  name: 'Shovel',  power: 2.0, suits: ['soft'],           tier: 1, pitch: 1.1 },
-  pickaxe: { id: 'pickaxe', name: 'Pickaxe', power: 2.0, suits: ['rock', 'metal'],  tier: 1, pitch: 0.95 },
-  drill:   { id: 'drill',   name: 'Drill',   power: 3.0, suits: [], universal: true, tier: 2, pitch: 0.8 },
+  hand:    { id: 'hand',    name: 'Hand',    icon: '✋',  power: 1.0, suits: [],                 tier: 0, pitch: 1.0 },
+  shovel:  { id: 'shovel',  name: 'Shovel',  icon: '🥄', power: 2.0, suits: ['soft'],           tier: 1, pitch: 1.1 },
+  pickaxe: { id: 'pickaxe', name: 'Pickaxe', icon: '⛏️',  power: 2.0, suits: ['rock', 'metal'],  tier: 1, pitch: 0.95 },
+  drill:   { id: 'drill',   name: 'Drill',   icon: '🛠️',  power: 3.0, suits: [], universal: true, tier: 2, pitch: 0.8 },
 };
 
 export const getTool = (id) => TOOLS[id];
