@@ -113,9 +113,18 @@ export class Game {
     this.canvas.addEventListener('mousedown', onDown);
     this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
 
-    // Keyboard / alternate input: Space or Enter digs at the block center.
+    const pauseBtn = document.getElementById('pauseBtn');
+    if (pauseBtn) pauseBtn.onclick = () => this.pause();
+
+    // Keyboard / alternate input: Esc pauses/resumes; Space/Enter digs.
     window.addEventListener('keydown', (e) => {
-      if (e.repeat || this.state !== 'playing') return;
+      if (e.repeat) return;
+      if (e.code === 'Escape') {
+        if (this.state === 'playing') this.pause();
+        else if (this.state === 'paused') this.resume();
+        return;
+      }
+      if (this.state !== 'playing') return;
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         initAudio(); resumeAudio();
@@ -123,6 +132,18 @@ export class Game {
         this._dig();
       }
     });
+  }
+
+  pause() {
+    if (this.state !== 'playing') return;
+    this.state = 'paused';
+    this.ui.showPause(() => this.resume(), () => this.start());
+  }
+
+  resume() {
+    if (this.state !== 'paused') return;
+    this.state = 'playing';
+    this.ui.hideOverlay();
   }
 
   // Current shovel's dig power. Durability sets the pace; stronger shovels
@@ -275,10 +296,10 @@ export class Game {
       this._lastClock = whole;
       this.ui.setTime(this.timeLeft);
     }
-    if (this.cube) this.cube.update(dt);
+    if (this.cube && this.state !== 'paused') this.cube.update(dt);
     this.held.update(dt);
     this.bg.update(dt);
-    this.particles.update(dt);
+    if (this.state !== 'paused') this.particles.update(dt);
 
     // apply screen shake as camera offset (skipped under reduced-motion)
     const s = this.reduce ? { x: 0, y: 0 } : this.shake.sample(dt);

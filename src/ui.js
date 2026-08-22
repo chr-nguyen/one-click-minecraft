@@ -86,8 +86,25 @@ export class UI {
     if (ab) ab.onclick = () => this.showAccessibility();
   }
 
+  // Pause menu (mid-run): resume, restart, language, accessibility.
+  showPause(onResume, onRestart) {
+    this.overlay.classList.remove('hidden');
+    this.overlayInner.innerHTML = `
+      <h1 class="sub">${t('paused')}</h1>
+      <button id="resumeBtn">${t('resume')}</button>
+      ${this._languagePicker()}
+      <button id="restartBtn" class="linkbtn">${t('restart')}</button>
+      ${isNativePlatform() ? '' : `<button id="a11yBtn" class="linkbtn">${t('a11yOpen')}</button>`}`;
+    $('resumeBtn').onclick = () => onResume && onResume();
+    $('restartBtn').onclick = () => onRestart && onRestart();
+    const ab = $('a11yBtn');
+    if (ab) ab.onclick = () => this.showAccessibility(() => this.showPause(onResume, onRestart));
+    this._wireLang(() => this.showPause(onResume, onRestart));
+  }
+
   // Web-only accessibility settings (iOS follows system settings automatically).
-  showAccessibility() {
+  // `onBack` returns to whichever screen opened it (start or pause).
+  showAccessibility(onBack) {
     const a = getA11y();
     const sizeBtn = (val, key) =>
       `<button class="chip${a.textScale === val ? ' on' : ''}" data-scale="${val}">${t(key)}</button>`;
@@ -107,7 +124,7 @@ export class UI {
     this.overlayInner.querySelectorAll('[data-scale]').forEach((el) => {
       el.onclick = () => { setA11y({ textScale: Number(el.dataset.scale) }); this.showAccessibility(); };
     });
-    $('a11yBack').onclick = () => this.showStart();
+    $('a11yBack').onclick = () => (onBack ? onBack() : this.showStart());
   }
 
   showGameOver(score, best, toolReached, onRestart) {
